@@ -1,0 +1,127 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - Gestor de Glosas Pro{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Panel Principal - {{ cliente }}</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary">Exportar</button>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                <i class="bi bi-calendar3"></i> Esta semana
+            </button>
+        </div>
+    </div>
+
+    <!-- Dashboard Cards -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-left-primary shadow">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Glosas Nuevas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ data.nuevas }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-file-earmark-plus text-primary fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-primary text-white">
+                    <small>Últimos 30 días</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-left-warning shadow">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Glosas Pendientes</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ data.pendientes }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-hourglass-split text-warning fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-warning text-white">
+                    <small>Requiere acción</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-left-success shadow">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Valor Total Pendiente</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ data.valor_total }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-currency-dollar text-success fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-success text-white">
+                    <small>Valor acumulado</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Button -->
+    <div class="row mt-4 mb-5">
+        <div class="col-12 text-center">
+            <a href="{{ url_for('bandeja_glosas') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-inbox-fill me-2"></i>Ir a Bandeja de Glosas
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Activity Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Actividad Reciente</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">Nueva glosa recibida</h5>
+                                <small>Hace 3 días</small>
+                            </div>
+                            <p class="mb-1">Seguros Salud S.A. - Factura F-2023-1180</p>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">Glosa respondida</h5>
+                                <small>Hace 5 días</small>
+                            </div>
+                            <p class="mb-1">Protección Total - Factura F-2023-1145</p>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">Glosa en análisis</h5>
+                                <small>Hace 1 semana</small>
+                            </div>
+                            <p class="mb-1">MediSeguro - Factura F-2023-1102</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

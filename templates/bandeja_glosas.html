@@ -1,0 +1,130 @@
+{% extends "layout.html" %}
+
+{% block title %}Bandeja de Glosas - Gestor de Glosas Pro{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Bandeja de Glosas</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary">Exportar</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary">Imprimir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Filtros</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select class="form-select" id="estado">
+                                <option value="">Todos</option>
+                                <option value="Nuevo">Nuevo</option>
+                                <option value="En Análisis">En Análisis</option>
+                                <option value="Respondida">Respondida</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="aseguradora" class="form-label">Aseguradora</label>
+                            <select class="form-select" id="aseguradora">
+                                <option value="">Todas</option>
+                                <option value="Seguros Salud S.A.">Seguros Salud S.A.</option>
+                                <option value="MediSeguro">MediSeguro</option>
+                                <option value="Protección Total">Protección Total</option>
+                                <option value="Asistencia Médica">Asistencia Médica</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="fecha" class="form-label">Fecha Recibido</label>
+                            <input type="date" class="form-control" id="fecha">
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12 text-end">
+                            <button type="button" class="btn btn-primary">Aplicar Filtros</button>
+                            <button type="button" class="btn btn-outline-secondary">Limpiar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Glosas -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Listado de Glosas</h6>
+                    <span class="badge bg-primary">Total: {{ glosas|length }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID Glosa</th>
+                                    <th>Aseguradora</th>
+                                    <th>Factura Asociada</th>
+                                    <th>Fecha Recibido</th>
+                                    <th>Estado</th>
+                                    <th>Valor Glosado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for glosa in glosas %}
+                                <tr>
+                                    <td>{{ glosa.id }}</td>
+                                    <td>{{ glosa.aseguradora }}</td>
+                                    <td>{{ glosa.factura }}</td>
+                                    <td>{{ glosa.fecha }}</td>
+                                    <td>
+                                        {% if glosa.estado == "Nuevo" %}
+                                        <span class="badge bg-info">{{ glosa.estado }}</span>
+                                        {% elif glosa.estado == "En Análisis" %}
+                                        <span class="badge bg-warning">{{ glosa.estado }}</span>
+                                        {% elif glosa.estado == "Respondida" %}
+                                        <span class="badge bg-success">{{ glosa.estado }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ glosa.valor }}</td>
+                                    <td>
+                                        <a href="{{ url_for('detalle_glosa', id_glosa=glosa.id) }}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye"></i> Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <nav aria-label="Paginación">
+                        <ul class="pagination justify-content-center mb-0">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Anterior</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Siguiente</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
