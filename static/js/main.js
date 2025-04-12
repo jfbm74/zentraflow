@@ -1,4 +1,4 @@
-// Funcionalidades para Glosas Pro - Zentratek
+// Funcionalidades para ZentraFlow - Zentratek
 
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar tooltips de Bootstrap

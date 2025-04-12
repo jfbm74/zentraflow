@@ -1,4 +1,4 @@
-// Funcionalidades para Glosas Pro - Zentratek
+// Funcionalidades para ZentraFlow - Zentratek
 
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar tooltips de Bootstrap
@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300);
         
         // Añadir título al pasar el ratón
-        logoContainer.setAttribute('title', 'Zentratek - Glosas Pro');
+        logoContainer.setAttribute('title', 'Zentratek - ZentraFlow');
     }
     
     // Manejador de errores para la imagen del logo

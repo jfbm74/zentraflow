@@ -1,4 +1,4 @@
-# Gestor de Glosas Pro - MVP Frontend
+# Gestor de Glosas ZentraFlow - MVP Frontend
 
 Este repositorio contiene el MVP (Producto Mínimo Viable) del Frontend para una aplicación web de gestión de glosas médicas, desarrollado con Flask, HTML y Bootstrap 5.
 
