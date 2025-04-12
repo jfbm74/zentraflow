@@ -8,6 +8,7 @@ La aplicación está destinada a clínicas médicas para gestionar las respuesta
 
 ## Características
 
+- Sistema de autenticación (login/logout) con usuarios de demostración
 - Panel principal (Dashboard) con indicadores clave
 - Bandeja de glosas con filtros y tabla de datos
 - Vista detallada de glosas individuales con opciones de respuesta
@@ -22,6 +23,10 @@ gestor-glosas-pro/
 ├── app.py                  # Aplicación principal Flask con rutas y datos dummy
 │
 ├── templates/              # Plantillas HTML
+│   ├── auth/               # Plantillas relacionadas con autenticación
+│   │   ├── login.html      # Página de inicio de sesión
+│   │   ├── layout_login.html # Plantilla para páginas de login
+│   │   └── 404.html        # Página de error 404
 │   ├── layout.html         # Plantilla base con header y sidebar
 │   ├── dashboard.html      # Panel principal
 │   ├── bandeja_glosas.html # Lista de glosas
@@ -38,7 +43,7 @@ gestor-glosas-pro/
 ## Requisitos
 
 - Python 3.7 o superior
-- Flask
+- Flask y dependencias (ver requirements.txt)
 
 ## Instalación
 
@@ -61,7 +66,7 @@ gestor-glosas-pro/
 
 3. Instala las dependencias:
    ```
-   pip install flask
+   pip install -r requirements.txt
    ```
 
 4. Ejecuta la aplicación:
@@ -74,12 +79,26 @@ gestor-glosas-pro/
    http://127.0.0.1:5000/
    ```
 
+## Credenciales de Demostración
+
+Para acceder al sistema, utiliza alguna de las siguientes credenciales:
+
+- **Administrador**:
+  - Email: email@clinica.com
+  - Contraseña: password123
+
+- **Usuario Regular**:
+  - Email: usuario@clinica.com
+  - Contraseña: 123456
+
 ## Flujo de Uso
 
-1. Inicia en el Dashboard para ver estadísticas generales.
-2. Navega a "Bandeja de Glosas" para ver la lista de todas las glosas.
-3. Haz clic en el botón "Ver" de cualquier glosa para acceder a su detalle.
-4. En la vista de detalle, puedes ver la información general, los ítems específicos, y las opciones de respuesta (aceptar/no aceptar + justificación).
+1. Inicia sesión con las credenciales proporcionadas.
+2. Inicia en el Dashboard para ver estadísticas generales.
+3. Navega a "Bandeja de Glosas" para ver la lista de todas las glosas.
+4. Haz clic en el botón "Ver" de cualquier glosa para acceder a su detalle.
+5. En la vista de detalle, puedes ver la información general, los ítems específicos, y las opciones de respuesta (aceptar/no aceptar + justificación).
+6. Para salir, selecciona "Cerrar Sesión" desde el menú de usuario en la barra de navegación.
 
 ## Notas de Desarrollo
 
@@ -87,14 +106,17 @@ gestor-glosas-pro/
 - Los datos son simulados en el archivo app.py.
 - La aplicación utiliza principalmente Bootstrap 5 para el diseño, complementado con CSS personalizado.
 - Se ha implementado una estructura que sugiere la naturaleza SaaS de la aplicación.
+- La autenticación es simple y usa datos en memoria para propósitos de demostración.
+- Las plantillas de autenticación se mantienen en un directorio separado para mejor organización.
 
 ## Próximos Pasos
 
 - Integración con backend y base de datos.
-- Implementación de autenticación y autorización.
+- Implementación completa de autenticación con JWT y roles de usuario.
 - Desarrollo completo del módulo de reportes.
 - Personalización por cliente.
 - Funcionalidad de exportación a PDF.
+- Gestión de usuarios y permisos.
 
 ## Capturas de Pantalla
 

@@ -1,6 +1,26 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request, session, flash
+import os
+from functools import wraps
 
 app = Flask(__name__)
+# Clave secreta para sesiones - en producción debería ser una clave segura y gestionada por variables de entorno
+app.secret_key = os.environ.get('SECRET_KEY', 'un_secreto_muy_seguro_para_desarrollo')
+
+# Usuarios dummy para demostración
+users = {
+    "email@clinica.com": {
+        "password": "password123",
+        "name": "Administrador",
+        "role": "admin",
+        "cliente": "Clínica Ejemplo SAS"
+    },
+    "usuario@clinica.com": {
+        "password": "123456",
+        "name": "Usuario Regular",
+        "role": "user",
+        "cliente": "Clínica Ejemplo SAS"
+    }
+}
 
 # Datos dummy para el dashboard
 dashboard_data = {
@@ -58,27 +78,97 @@ glosas_detalle = {
     }
 }
 
-# Rutas de la aplicación
+# Decorador para requerir login
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'logged_in' not in session:
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Ruta de login
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    # Si ya está logueado, redirigir al dashboard
+    if 'logged_in' in session:
+        return redirect(url_for('dashboard'))
+    
+    error = None
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        
+        if email in users and users[email]['password'] == password:
+            # Autenticación exitosa
+            session['logged_in'] = True
+            session['user_email'] = email
+            session['user_name'] = users[email]['name']
+            session['user_role'] = users[email]['role']
+            session['cliente'] = users[email]['cliente']
+            
+            # Redirigir a la página solicitada originalmente o al dashboard
+            next_page = request.args.get('next')
+            if next_page:
+                return redirect(next_page)
+            return redirect(url_for('dashboard'))
+        else:
+            error = 'Credenciales inválidas. Por favor intente nuevamente.'
+    
+    return render_template('auth/login.html', error=error)
+
+# Ruta de logout
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+# Rutas protegidas de la aplicación
 @app.route('/')
+@login_required
 def dashboard():
-    return render_template('dashboard.html', data=dashboard_data, cliente="Clínica Ejemplo SAS")
+    return render_template('dashboard.html', 
+                           data=dashboard_data, 
+                           cliente=session.get('cliente'),
+                           user_name=session.get('user_name'),
+                           user_email=session.get('user_email'))
 
 @app.route('/glosas')
+@login_required
 def bandeja_glosas():
-    return render_template('bandeja_glosas.html', glosas=glosas_list, cliente="Clínica Ejemplo SAS")
+    return render_template('bandeja_glosas.html', 
+                           glosas=glosas_list, 
+                           cliente=session.get('cliente'),
+                           user_name=session.get('user_name'),
+                           user_email=session.get('user_email'))
 
 @app.route('/glosas/<int:id_glosa>')
+@login_required
 def detalle_glosa(id_glosa):
     # Intentar obtener la glosa por ID, si no existe, redirigir a la bandeja
     if id_glosa in glosas_detalle:
         glosa = glosas_detalle[id_glosa]
-        return render_template('detalle_glosa.html', info=glosa["info"], items=glosa["items"], cliente="Clínica Ejemplo SAS")
+        return render_template('detalle_glosa.html', 
+                               info=glosa["info"], 
+                               items=glosa["items"], 
+                               cliente=session.get('cliente'),
+                               user_name=session.get('user_name'),
+                               user_email=session.get('user_email'))
     return redirect(url_for('bandeja_glosas'))
 
 @app.route('/reportes')
+@login_required
 def reportes():
     # Esta página será un placeholder por ahora
-    return render_template('reportes.html', cliente="Clínica Ejemplo SAS")
+    return render_template('reportes.html', 
+                           cliente=session.get('cliente'),
+                           user_name=session.get('user_name'),
+                           user_email=session.get('user_email'))
+
+# Manejador de error 404
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('auth/404.html'), 404
 
 # Ejecutar la aplicación
 if __name__ == '__main__':

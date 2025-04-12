@@ -7,6 +7,18 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Tooltip(tooltipTriggerEl)
     });
 
+// Función para simular alertas en botones del detalle de glosa
+function showAlert(message) {
+    alert(message);
+    // En una aplicación real, aquí iría código para mostrar un toast o una notificación más elegante
+}
+
+    // Inicializar dropdowns de Bootstrap
+    var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
+    var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+        return new bootstrap.Dropdown(dropdownToggleEl)
+    });
+
     // Manejar el cambio en los filtros de la bandeja de glosas
     const estadoSelect = document.getElementById('estado');
     const aseguradoraSelect = document.getElementById('aseguradora');
@@ -78,10 +90,29 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+    
+    // Funcionalidad para recordar usuario (login)
+    const rememberCheckbox = document.getElementById('inputRememberPassword');
+    const emailInput = document.getElementById('inputEmail');
+    
+    if (rememberCheckbox && emailInput) {
+        // Cargar email guardado si existe
+        const savedEmail = localStorage.getItem('rememberedEmail');
+        if (savedEmail) {
+            emailInput.value = savedEmail;
+            rememberCheckbox.checked = true;
+        }
+        
+        // Guardar email al enviar formulario si checkbox está marcado
+        const loginForm = document.querySelector('form[action*="login"]');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function() {
+                if (rememberCheckbox.checked) {
+                    localStorage.setItem('rememberedEmail', emailInput.value);
+                } else {
+                    localStorage.removeItem('rememberedEmail');
+                }
+            });
+        }
+    }
 });
-
-// Función para simular alertas en botones del detalle de glosa
-function showAlert(message) {
-    alert(message);
-    // En una aplicación real, aquí iría código para mostrar un toast o una notificación más elegante
-}

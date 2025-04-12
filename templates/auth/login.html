@@ -1,0 +1,48 @@
+{% extends "auth/layout_login.html" %}
+
+{% block title %}Iniciar Sesión - Gestor de Glosas Pro{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg border-0 rounded-lg mt-5">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="font-weight-light my-2">Gestor de Glosas Pro</h3>
+                    <p class="mb-0">Sistema de Gestión de Glosas SaaS</p>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('login') }}">
+                        <div class="form-floating mb-3">
+                            <input class="form-control" id="inputEmail" type="email" name="email" placeholder="nombre@ejemplo.com" required />
+                            <label for="inputEmail">Correo Electrónico</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input class="form-control" id="inputPassword" type="password" name="password" placeholder="Contraseña" required />
+                            <label for="inputPassword">Contraseña</label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" id="inputRememberPassword" type="checkbox" name="remember" />
+                            <label class="form-check-label" for="inputRememberPassword">Recordar contraseña</label>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
+                            <a class="small" href="#">¿Olvidó su contraseña?</a>
+                            <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center py-3">
+                    <div class="small">
+                        Demo: Use email@clinica.com / password123
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
