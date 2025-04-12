@@ -12,26 +12,40 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/zentratek.css') }}">
 </head>
 <body>
-    <!-- Header -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-zentratek">
+    <!-- Header Mejorado -->
+    <nav class="navbar navbar-expand-lg navbar-dark zentratek-navbar">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
-                <img src="{{ url_for('static', filename='img/zentratek-logo.png') }}" alt="Zentratek Logo" height="40">
-                Glosas Pro
+            <!-- Contenedor del logo con fondo blanco -->
+            <div class="zentratek-logo-container me-2">
+                <a class="navbar-brand p-0" href="{{ url_for('dashboard') }}">
+                    <img src="{{ url_for('static', filename='img/zentratek-logo.png') }}" alt="Zentratek Logo" class="zentratek-logo">
+                </a>
+            </div>
+            
+            <!-- Título de la aplicación -->
+            <a class="navbar-brand zentratek-brand" href="{{ url_for('dashboard') }}">
+                <span class="brand-text">Glosas Pro</span>
             </a>
-            <span class="navbar-text text-white ms-3 d-none d-md-inline">
-                <i class="bi bi-building"></i> Cliente: {{ cliente }}
-            </span>
+            
+            <!-- Badge del cliente -->
+            <div class="zentratek-client-badge ms-3 d-none d-md-flex align-items-center">
+                <i class="bi bi-building"></i>
+                <span class="ms-2">{{ cliente }}</span>
+            </div>
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle"></i> {{ user_name }}
+                        <a class="nav-link dropdown-toggle zentratek-user-menu" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="d-inline-block zentratek-user-avatar me-2">
+                                <span>{{ user_name[0] }}</span>
+                            </div>
+                            <span>{{ user_name }}</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <ul class="dropdown-menu dropdown-menu-end zentratek-dropdown" aria-labelledby="navbarDropdown">
                             <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Mi Perfil</a></li>
                             <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Configuración</a></li>
                             <li><hr class="dropdown-divider"></li>
@@ -77,22 +91,22 @@
                     </h6>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link" href="ingesta-correo">
+                            <a class="nav-link" href="{{ url_for('ingesta_correo') }}">
                                 <i class="bi bi-envelope-check"></i> Ingesta de Correo
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="extraccion-datos">
+                            <a class="nav-link" href="{{ url_for('extraccion_datos') }}">
                                 <i class="bi bi-file-earmark-spreadsheet"></i> Extracción de Datos
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="flujo-trabajo">
+                            <a class="nav-link" href="{{ url_for('flujo_trabajo') }}">
                                 <i class="bi bi-diagram-3"></i> Flujo de Trabajo
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="generacion-pdf">
+                            <a class="nav-link" href="{{ url_for('generacion_pdf') }}">
                                 <i class="bi bi-file-earmark-pdf"></i> Generación PDF
                             </a>
                         </li>
@@ -108,12 +122,12 @@
                     </h6>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link" href="configuracion">
+                            <a class="nav-link" href="#">
                                 <i class="bi bi-gear"></i> Configuración
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="auditoria">
+                            <a class="nav-link" href="#">
                                 <i class="bi bi-shield-check"></i> Auditoría
                             </a>
                         </li>

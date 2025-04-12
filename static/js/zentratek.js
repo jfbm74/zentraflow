@@ -187,4 +187,51 @@ document.addEventListener('DOMContentLoaded', function() {
     toastContainer.id = 'toast-container';
     toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
     document.body.appendChild(toastContainer);
+    
+    // Efectos para el logo de Zentratek
+    const logoContainer = document.querySelector('.zentratek-logo-container');
+    const logo = document.querySelector('.zentratek-logo');
+    
+    if (logoContainer && logo) {
+        // Efecto de brillo al pasar el mouse
+        logoContainer.addEventListener('mouseenter', function() {
+            // Crear elemento de brillo
+            if (!document.querySelector('.logo-shine')) {
+                const shine = document.createElement('div');
+                shine.className = 'logo-shine';
+                this.appendChild(shine);
+                
+                // Animar el brillo
+                setTimeout(() => {
+                    shine.style.left = '120%';
+                }, 50);
+                
+                // Remover después de la animación
+                setTimeout(() => {
+                    shine.remove();
+                }, 500);
+            }
+        });
+        
+        // Efecto de revelación al cargar la página
+        logoContainer.style.opacity = '0';
+        logoContainer.style.transform = 'translateY(-10px)';
+        
+        setTimeout(() => {
+            logoContainer.style.transition = 'all 0.5s ease-out';
+            logoContainer.style.opacity = '1';
+            logoContainer.style.transform = 'translateY(0)';
+        }, 300);
+        
+        // Añadir título al pasar el ratón
+        logoContainer.setAttribute('title', 'Zentratek - Glosas Pro');
+    }
+    
+    // Manejador de errores para la imagen del logo
+    if (logo) {
+        logo.addEventListener('error', function() {
+            console.warn('Error al cargar el logo de Zentratek.');
+            this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjUwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnPjx0ZXh0IGZpbGw9IiMzMmI4NzQiIHN0cm9rZS13aWR0aD0iMCIgeD0iNSIgeT0iMzUiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtZmFtaWx5PSdBcmlhbCc+WkVOVFJBVEVLPC90ZXh0PjwvZz48L3N2Zz4=';
+        });
+    }
 });
