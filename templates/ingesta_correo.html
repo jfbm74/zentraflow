@@ -1,0 +1,310 @@
+{% extends "layout.html" %}
+
+{% block title %}Ingesta de Correo - Glosas Pro{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+        <h1 class="h2"><i class="bi bi-envelope-check text-primary me-2"></i>Módulo de Ingesta de Correo</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-gear"></i> Configuración
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-download"></i> Registros
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estado del Servicio -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary">Estado del Servicio</h5>
+                    <span class="badge bg-success">Activo</span>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h6>Configuración Actual:</h6>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Cuenta de correo:
+                                    <span class="text-primary">intranet@gonzanaips.com</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Protocolo:
+                                    <span class="badge bg-info">Microsoft Graph API</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Intervalo de verificación:
+                                    <span>5 minutos</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Última verificación:
+                                    <span>Hace 2 minutos</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Estadísticas del día</h6>
+                                    <div class="row text-center">
+                                        <div class="col-6 mb-3">
+                                            <h2 class="text-primary fw-bold">24</h2>
+                                            <p class="text-muted">Correos procesados</p>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <h2 class="text-success fw-bold">16</h2>
+                                            <p class="text-muted">Glosas extraídas</p>
+                                        </div>
+                                        <div class="col-6">
+                                            <h2 class="text-warning fw-bold">3</h2>
+                                            <p class="text-muted">Pendientes</p>
+                                        </div>
+                                        <div class="col-6">
+                                            <h2 class="text-danger fw-bold">1</h2>
+                                            <p class="text-muted">Errores</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-arrow-clockwise"></i> Verificar ahora
+                            </button>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <button class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-stop-circle"></i> Pausar servicio
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reglas de Filtrado -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary">Reglas de Filtrado</h5>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#nuevaReglaModal">
+                        <i class="bi bi-plus-circle"></i> Nueva Regla
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Condición</th>
+                                    <th>Valor</th>
+                                    <th>Acción</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Aseguradora A</td>
+                                    <td>Remitente contiene</td>
+                                    <td>segurossalud.com</td>
+                                    <td>Procesar</td>
+                                    <td><span class="badge bg-success">Activa</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Aseguradora B</td>
+                                    <td>Asunto contiene</td>
+                                    <td>GLOSA</td>
+                                    <td>Procesar</td>
+                                    <td><span class="badge bg-success">Activa</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Spam</td>
+                                    <td>Asunto contiene</td>
+                                    <td>promoción,oferta</td>
+                                    <td>Ignorar</td>
+                                    <td><span class="badge bg-success">Activa</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historial de Actividad -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary">Historial de Actividad</h5>
+                    <button class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-download"></i> Descargar Log
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Fecha/Hora</th>
+                                    <th>Evento</th>
+                                    <th>Detalles</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2023-11-10 09:45:12</td>
+                                    <td>Correo recibido</td>
+                                    <td>De: notificaciones@segurossalud.com</td>
+                                    <td><span class="badge bg-success">Procesado</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2023-11-10 09:45:15</td>
+                                    <td>Adjunto extraído</td>
+                                    <td>GlosaFacturaF12345.xlsx</td>
+                                    <td><span class="badge bg-success">Éxito</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2023-11-10 09:30:05</td>
+                                    <td>Correo recibido</td>
+                                    <td>De: facturas@mediseguro.com</td>
+                                    <td><span class="badge bg-warning">Pendiente</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2023-11-10 09:15:22</td>
+                                    <td>Adjunto extraído</td>
+                                    <td>GlosaF98765.pdf</td>
+                                    <td><span class="badge bg-danger">Error OCR</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2023-11-10 09:00:00</td>
+                                    <td>Verificación iniciada</td>
+                                    <td>Inicio del ciclo de verificación</td>
+                                    <td><span class="badge bg-info">Informativo</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <nav aria-label="Paginación de log">
+                        <ul class="pagination justify-content-center m-0">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">Anterior</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Siguiente</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Nueva Regla -->
+<div class="modal fade" id="nuevaReglaModal" tabindex="-1" aria-labelledby="nuevaReglaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="nuevaReglaModalLabel">Crear Nueva Regla</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="nombreRegla" class="form-label">Nombre de la Regla</label>
+                        <input type="text" class="form-control" id="nombreRegla" placeholder="Ej. Aseguradora XYZ">
+                    </div>
+                    <div class="mb-3">
+                        <label for="condicionRegla" class="form-label">Condición</label>
+                        <select class="form-select" id="condicionRegla">
+                            <option value="remitente">Remitente contiene</option>
+                            <option value="asunto">Asunto contiene</option>
+                            <option value="cuerpo">Cuerpo contiene</option>
+                            <option value="adjunto">Tiene adjunto</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="valorRegla" class="form-label">Valor</label>
+                        <input type="text" class="form-control" id="valorRegla" placeholder="Ej. @empresa.com, glosa, factura">
+                    </div>
+                    <div class="mb-3">
+                        <label for="accionRegla" class="form-label">Acción</label>
+                        <select class="form-select" id="accionRegla">
+                            <option value="procesar">Procesar</option>
+                            <option value="ignorar">Ignorar</option>
+                            <option value="marcar">Marcar para revisión manual</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="estadoRegla" checked>
+                        <label class="form-check-label" for="estadoRegla">Regla activa</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="showToast('Regla creada exitosamente')">Guardar Regla</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Scripts específicos para esta página
+</script>
+{% endblock %}

@@ -1,14 +1,16 @@
 {% extends "layout.html" %}
 
-{% block title %}Dashboard - Gestor de Glosas Pro{% endblock %}
+{% block title %}Dashboard - Glosas Pro{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
         <h1 class="h2">Panel Principal - {{ cliente }}</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group me-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary">Exportar</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-download"></i> Exportar
+                </button>
             </div>
             <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
                 <i class="bi bi-calendar3"></i> Esta semana
@@ -18,109 +20,243 @@
 
     <!-- Dashboard Cards -->
     <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-left-primary shadow">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card card-stats h-100 border-left-primary shadow-sm">
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Glosas Nuevas</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ data.nuevas }}</div>
+                    <div class="row">
+                        <div class="col-3">
+                            <div class="icon-shape bg-gradient-primary text-white rounded-circle shadow">
+                                <i class="bi bi-file-earmark-plus"></i>
+                            </div>
                         </div>
-                        <div class="col-auto">
-                            <i class="bi bi-file-earmark-plus text-primary fs-1"></i>
+                        <div class="col-9 text-end">
+                            <span class="text-sm text-uppercase fw-bold">Glosas Nuevas</span>
+                            <h3 class="font-weight-bold mb-0">{{ data.nuevas }}</h3>
                         </div>
                     </div>
-                </div>
-                <div class="card-footer bg-primary text-white">
-                    <small>Últimos 30 días</small>
+                    <p class="mt-3 mb-0 text-sm">
+                        <span class="text-success me-2"><i class="bi bi-arrow-up"></i> 3.48%</span>
+                        <span class="text-nowrap">Últimos 30 días</span>
+                    </p>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-left-warning shadow">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card card-stats h-100 border-left-warning shadow-sm">
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Glosas Pendientes</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ data.pendientes }}</div>
+                    <div class="row">
+                        <div class="col-3">
+                            <div class="icon-shape bg-gradient-warning text-white rounded-circle shadow">
+                                <i class="bi bi-hourglass-split"></i>
+                            </div>
                         </div>
-                        <div class="col-auto">
-                            <i class="bi bi-hourglass-split text-warning fs-1"></i>
+                        <div class="col-9 text-end">
+                            <span class="text-sm text-uppercase fw-bold">Glosas Pendientes</span>
+                            <h3 class="font-weight-bold mb-0">{{ data.pendientes }}</h3>
                         </div>
                     </div>
-                </div>
-                <div class="card-footer bg-warning text-white">
-                    <small>Requiere acción</small>
+                    <p class="mt-3 mb-0 text-sm">
+                        <span class="text-danger me-2"><i class="bi bi-arrow-up"></i> 5.21%</span>
+                        <span class="text-nowrap">Requiere acción</span>
+                    </p>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-left-success shadow">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card card-stats h-100 border-left-info shadow-sm">
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Valor Total Pendiente</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ data.valor_total }}</div>
+                    <div class="row">
+                        <div class="col-3">
+                            <div class="icon-shape bg-gradient-info text-white rounded-circle shadow">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
                         </div>
-                        <div class="col-auto">
-                            <i class="bi bi-currency-dollar text-success fs-1"></i>
+                        <div class="col-9 text-end">
+                            <span class="text-sm text-uppercase fw-bold">Respondidas</span>
+                            <h3 class="font-weight-bold mb-0">15</h3>
                         </div>
                     </div>
+                    <p class="mt-3 mb-0 text-sm">
+                        <span class="text-success me-2"><i class="bi bi-arrow-up"></i> 12%</span>
+                        <span class="text-nowrap">Este mes</span>
+                    </p>
                 </div>
-                <div class="card-footer bg-success text-white">
-                    <small>Valor acumulado</small>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card card-stats h-100 border-left-success shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-3">
+                            <div class="icon-shape bg-gradient-success text-white rounded-circle shadow">
+                                <i class="bi bi-currency-dollar"></i>
+                            </div>
+                        </div>
+                        <div class="col-9 text-end">
+                            <span class="text-sm text-uppercase fw-bold">Valor Pendiente</span>
+                            <h3 class="font-weight-bold mb-0">{{ data.valor_total }}</h3>
+                        </div>
+                    </div>
+                    <p class="mt-3 mb-0 text-sm">
+                        <span class="text-danger me-2"><i class="bi bi-arrow-up"></i> 8.4%</span>
+                        <span class="text-nowrap">Valor acumulado</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen por Módulos -->
+    <div class="row mt-4">
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 text-primary fw-bold">Actividad por Módulo</h6>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-link text-muted" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">Ver Detalles</a></li>
+                            <li><a class="dropdown-item" href="#">Exportar Datos</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table align-items-center table-flush">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th scope="col">Módulo</th>
+                                    <th scope="col">Estado</th>
+                                    <th scope="col">Actividad</th>
+                                    <th scope="col">Último Procesamiento</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-envelope-check text-primary me-2"></i>
+                                        Ingesta de Correo
+                                    </td>
+                                    <td><span class="badge bg-success rounded-pill">Activo</span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="me-2">85%</span>
+                                            <div class="progress w-100" style="height: 5px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 85%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>Hace 5 minutos</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-file-earmark-spreadsheet text-info me-2"></i>
+                                        Extracción de Datos
+                                    </td>
+                                    <td><span class="badge bg-success rounded-pill">Activo</span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="me-2">70%</span>
+                                            <div class="progress w-100" style="height: 5px;">
+                                                <div class="progress-bar bg-info" role="progressbar" style="width: 70%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>Hace 15 minutos</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-diagram-3 text-warning me-2"></i>
+                                        Flujo de Trabajo
+                                    </td>
+                                    <td><span class="badge bg-success rounded-pill">Activo</span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="me-2">60%</span>
+                                            <div class="progress w-100" style="height: 5px;">
+                                                <div class="progress-bar bg-warning" role="progressbar" style="width: 60%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>Hace 2 horas</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
+                                        Generación PDF
+                                    </td>
+                                    <td><span class="badge bg-warning rounded-pill">Alerta</span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="me-2">45%</span>
+                                            <div class="progress w-100" style="height: 5px;">
+                                                <div class="progress-bar bg-danger" role="progressbar" style="width: 45%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>Hace 1 día</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0 text-primary fw-bold">Actividad Reciente</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="timeline timeline-one-side p-3" data-timeline-content="axis" data-timeline-axis-style="dashed">
+                        <div class="timeline-block">
+                            <span class="timeline-step badge-success">
+                                <i class="bi bi-check-lg"></i>
+                            </span>
+                            <div class="timeline-content">
+                                <h6 class="text-dark text-sm font-weight-bold mb-0">Nueva glosa recibida</h6>
+                                <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">Hace 3 días</p>
+                                <p class="text-sm mt-3 mb-0">Seguros Salud S.A. - Factura F-2023-1180</p>
+                            </div>
+                        </div>
+                        <div class="timeline-block">
+                            <span class="timeline-step badge-warning">
+                                <i class="bi bi-journal-text"></i>
+                            </span>
+                            <div class="timeline-content">
+                                <h6 class="text-dark text-sm font-weight-bold mb-0">Glosa respondida</h6>
+                                <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">Hace 5 días</p>
+                                <p class="text-sm mt-3 mb-0">Protección Total - Factura F-2023-1145</p>
+                            </div>
+                        </div>
+                        <div class="timeline-block">
+                            <span class="timeline-step badge-info">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <div class="timeline-content">
+                                <h6 class="text-dark text-sm font-weight-bold mb-0">Glosa en análisis</h6>
+                                <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">Hace 1 semana</p>
+                                <p class="text-sm mt-3 mb-0">MediSeguro - Factura F-2023-1102</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Action Button -->
-    <div class="row mt-4 mb-5">
+    <div class="row mt-2 mb-4">
         <div class="col-12 text-center">
-            <a href="{{ url_for('bandeja_glosas') }}" class="btn btn-primary btn-lg">
+            <a href="{{ url_for('bandeja_glosas') }}" class="btn btn-zentratek btn-lg">
                 <i class="bi bi-inbox-fill me-2"></i>Ir a Bandeja de Glosas
             </a>
-        </div>
-    </div>
-
-    <!-- Recent Activity Section -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Actividad Reciente</h6>
-                </div>
-                <div class="card-body">
-                    <div class="list-group">
-                        <a href="#" class="list-group-item list-group-item-action">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1">Nueva glosa recibida</h5>
-                                <small>Hace 3 días</small>
-                            </div>
-                            <p class="mb-1">Seguros Salud S.A. - Factura F-2023-1180</p>
-                        </a>
-                        <a href="#" class="list-group-item list-group-item-action">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1">Glosa respondida</h5>
-                                <small>Hace 5 días</small>
-                            </div>
-                            <p class="mb-1">Protección Total - Factura F-2023-1145</p>
-                        </a>
-                        <a href="#" class="list-group-item list-group-item-action">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1">Glosa en análisis</h5>
-                                <small>Hace 1 semana</small>
-                            </div>
-                            <p class="mb-1">MediSeguro - Factura F-2023-1102</p>
-                        </a>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>

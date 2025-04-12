@@ -1,0 +1,499 @@
+{% extends "layout.html" %}
+
+{% block title %}Extracción de Datos - Glosas Pro{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+        <h1 class="h2"><i class="bi bi-file-earmark-spreadsheet text-primary me-2"></i>Módulo de Extracción de Datos</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-gear"></i> Configuración
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-download"></i> Plantillas
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estado del Servicio y Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary">Estado del Servicio</h5>
+                    <span class="badge bg-success">Activo</span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Estadísticas de Procesamiento:</h6>
+                            <div class="row mt-3">
+                                <div class="col-6 text-center">
+                                    <div class="border rounded p-3">
+                                        <h3 class="text-primary">45</h3>
+                                        <p class="text-muted mb-0">Documentos Procesados</p>
+                                    </div>
+                                </div>
+                                <div class="col-6 text-center">
+                                    <div class="border rounded p-3">
+                                        <h3 class="text-success">93%</h3>
+                                        <p class="text-muted mb-0">Tasa de Éxito</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-6 text-center">
+                                    <div class="border rounded p-3">
+                                        <h3 class="text-warning">3</h3>
+                                        <p class="text-muted mb-0">Esperando OCR</p>
+                                    </div>
+                                </div>
+                                <div class="col-6 text-center">
+                                    <div class="border rounded p-3">
+                                        <h3 class="text-danger">2</h3>
+                                        <p class="text-muted mb-0">Errores</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Rendimiento del Parser</h6>
+                            <div class="chart-container" style="position: relative; height:200px;">
+                                <canvas id="parserChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h6>Estado de los Extractores</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Tipo</th>
+                                            <th>Estado</th>
+                                            <th>Archivos Soportados</th>
+                                            <th>Eficiencia</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><i class="bi bi-file-earmark-excel text-success me-2"></i>Excel Parser</td>
+                                            <td><span class="badge bg-success">Activo</span></td>
+                                            <td>.xlsx, .xls, .csv</td>
+                                            <td>
+                                                <div class="progress" style="height: 5px;">
+                                                    <div class="progress-bar bg-success" role="progressbar" style="width: 95%"></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><i class="bi bi-file-earmark-pdf text-danger me-2"></i>PDF Parser</td>
+                                            <td><span class="badge bg-success">Activo</span></td>
+                                            <td>.pdf</td>
+                                            <td>
+                                                <div class="progress" style="height: 5px;">
+                                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 75%"></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><i class="bi bi-file-earmark-image text-primary me-2"></i>OCR Engine</td>
+                                            <td><span class="badge bg-success">Activo</span></td>
+                                            <td>.jpg, .png, .tiff, PDF escaneados</td>
+                                            <td>
+                                                <div class="progress" style="height: 5px;">
+                                                    <div class="progress-bar bg-info" role="progressbar" style="width: 60%"></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar estadísticas
+                            </button>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <button class="btn btn-primary btn-sm">
+                                <i class="bi bi-file-earmark-text"></i> Ver logs detallados
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Documentos en Cola</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1"><i class="bi bi-file-earmark-excel text-success me-2"></i>Glosa_SaludSegura_123.xlsx</h6>
+                                <small class="text-primary">Procesando...</small>
+                            </div>
+                            <small class="text-muted">Recibido: Hace 5 minutos</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Glosa_MediSalud_456.pdf</h6>
+                                <small class="text-warning">En cola</small>
+                            </div>
+                            <small class="text-muted">Recibido: Hace 15 minutos</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1"><i class="bi bi-file-earmark-image text-info me-2"></i>Glosa_Proteccion_789.pdf</h6>
+                                <small class="text-info">OCR requerido</small>
+                            </div>
+                            <small class="text-muted">Recibido: Hace 30 minutos</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1"><i class="bi bi-file-earmark-excel text-success me-2"></i>Glosa_AsistM_101.xlsx</h6>
+                                <small class="text-success">Completado</small>
+                            </div>
+                            <small class="text-muted">Recibido: Hace 1 hora</small>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="#" class="btn btn-outline-primary btn-sm">Ver Todos (15)</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuración de Plantillas -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary">Plantillas de Extracción</h5>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#nuevaPlantillaModal">
+                        <i class="bi bi-plus-circle"></i> Nueva Plantilla
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Aseguradora</th>
+                                    <th>Tipo de Documento</th>
+                                    <th>Formato</th>
+                                    <th>Última Modificación</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Seguros Salud S.A.</td>
+                                    <td>Glosa Estándar</td>
+                                    <td><span class="badge bg-success">Excel</span></td>
+                                    <td>15/10/2023</td>
+                                    <td><span class="badge bg-success">Activa</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>MediSeguro</td>
+                                    <td>Detalle de Glosa</td>
+                                    <td><span class="badge bg-danger">PDF</span></td>
+                                    <td>10/10/2023</td>
+                                    <td><span class="badge bg-success">Activa</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Protección Total</td>
+                                    <td>Glosa Resumida</td>
+                                    <td><span class="badge bg-success">Excel</span></td>
+                                    <td>05/10/2023</td>
+                                    <td><span class="badge bg-warning">En prueba</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Asistencia Médica</td>
+                                    <td>Glosa Detallada</td>
+                                    <td><span class="badge bg-info">OCR</span></td>
+                                    <td>01/10/2023</td>
+                                    <td><span class="badge bg-danger">Inactiva</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Extracción Manual -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Extracción Manual</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="manualFile" class="form-label">Seleccione un archivo para procesar:</label>
+                                <input class="form-control" type="file" id="manualFile">
+                            </div>
+                            <div class="mb-3">
+                                <label for="plantillaExtraccion" class="form-label">Plantilla de Extracción:</label>
+                                <select class="form-select" id="plantillaExtraccion">
+                                    <option value="">Seleccione una plantilla...</option>
+                                    <option value="1">Seguros Salud S.A. - Glosa Estándar</option>
+                                    <option value="2">MediSeguro - Detalle de Glosa</option>
+                                    <option value="3">Protección Total - Glosa Resumida</option>
+                                    <option value="4">Asistencia Médica - Glosa Detallada</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="forzarOCR">
+                                    <label class="form-check-label" for="forzarOCR">Forzar OCR (para documentos escaneados)</label>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="showToast('Iniciando procesamiento del archivo...')">
+                                <i class="bi bi-play"></i> Procesar Archivo
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border p-3 h-100 rounded bg-light">
+                                <h6 class="mb-3">Información del Proceso</h6>
+                                <div id="procesoInfo">
+                                    <p class="text-muted text-center my-5">
+                                        <i class="bi bi-arrow-left-circle fs-3 d-block mb-3"></i>
+                                        Seleccione un archivo y una plantilla para iniciar el proceso de extracción manual.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Nueva Plantilla -->
+<div class="modal fade" id="nuevaPlantillaModal" tabindex="-1" aria-labelledby="nuevaPlantillaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="nuevaPlantillaModalLabel">Crear Nueva Plantilla de Extracción</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="nombrePlantilla" class="form-label">Nombre de la Plantilla</label>
+                            <input type="text" class="form-control" id="nombrePlantilla" placeholder="Ej. Glosa Estándar">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="aseguradoraPlantilla" class="form-label">Aseguradora</label>
+                            <select class="form-select" id="aseguradoraPlantilla">
+                                <option value="">Seleccione una aseguradora...</option>
+                                <option value="1">Seguros Salud S.A.</option>
+                                <option value="2">MediSeguro</option>
+                                <option value="3">Protección Total</option>
+                                <option value="4">Asistencia Médica</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="tipoDocumentoPlantilla" class="form-label">Tipo de Documento</label>
+                            <select class="form-select" id="tipoDocumentoPlantilla">
+                                <option value="excel">Excel (.xlsx, .xls, .csv)</option>
+                                <option value="pdf">PDF</option>
+                                <option value="ocr">Documento Escaneado (OCR)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="archivoEjemplo" class="form-label">Archivo de Ejemplo (opcional)</label>
+                            <input class="form-control" type="file" id="archivoEjemplo">
+                        </div>
+                    </div>
+                    <hr>
+                    <h6>Mapeo de Campos</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Campo Sistema</th>
+                                    <th>Campo en Documento</th>
+                                    <th>Tipo</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="camposMapeo">
+                                <tr>
+                                    <td>
+                                        <select class="form-select form-select-sm">
+                                            <option>Número de Factura</option>
+                                            <option>Fecha de Glosa</option>
+                                            <option>Valor Total</option>
+                                            <option>Código Ítem</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm" placeholder="Ej. A2 o 'Factura N°'">
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm">
+                                            <option>Texto</option>
+                                            <option>Número</option>
+                                            <option>Fecha</option>
+                                            <option>Moneda</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-plus-circle"></i> Añadir Campo
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="showToast('Plantilla creada exitosamente')">Guardar Plantilla</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gráfico de rendimiento del parser
+        const ctx = document.getElementById('parserChart').getContext('2d');
+        const parserChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                datasets: [{
+                    label: 'Excel',
+                    data: [12, 19, 3, 5, 10, 3, 7],
+                    borderColor: '#32b874',
+                    backgroundColor: 'rgba(50, 184, 116, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'PDF',
+                    data: [7, 11, 5, 8, 3, 7, 9],
+                    borderColor: '#0088cc',
+                    backgroundColor: 'rgba(0, 136, 204, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'OCR',
+                    data: [3, 5, 2, 4, 6, 2, 4],
+                    borderColor: '#ffc107',
+                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Documentos Procesados'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

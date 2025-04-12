@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, session, flash
+from flask import Flask, render_template, redirect, url_for, request, session, flash, jsonify
 import os
 from functools import wraps
 
@@ -164,6 +164,130 @@ def reportes():
                            cliente=session.get('cliente'),
                            user_name=session.get('user_name'),
                            user_email=session.get('user_email'))
+
+# Nuevas rutas para los módulos adicionales
+@app.route('/ingesta-correo')
+@login_required
+def ingesta_correo():
+    return render_template('ingesta_correo.html',
+                           cliente=session.get('cliente'),
+                           user_name=session.get('user_name'),
+                           user_email=session.get('user_email'))
+
+@app.route('/extraccion-datos')
+@login_required
+def extraccion_datos():
+    return render_template('extraccion_datos.html',
+                           cliente=session.get('cliente'),
+                           user_name=session.get('user_name'),
+                           user_email=session.get('user_email'))
+
+@app.route('/flujo-trabajo')
+@login_required
+def flujo_trabajo():
+    return render_template('flujo_trabajo.html',
+                           cliente=session.get('cliente'),
+                           user_name=session.get('user_name'),
+                           user_email=session.get('user_email'))
+
+@app.route('/generacion-pdf')
+@login_required
+def generacion_pdf():
+    return render_template('generacion_pdf.html',
+                           cliente=session.get('cliente'),
+                           user_name=session.get('user_name'),
+                           user_email=session.get('user_email'))
+
+# API para gráficos y actualizaciones en tiempo real (dummy)
+@app.route('/api/dashboard/stats')
+@login_required
+def dashboard_stats():
+    return jsonify({
+        'chart_data': {
+            'labels': ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+            'data': [12, 19, 15, 22, 18, 24]
+        },
+        'kpis': {
+            'nuevas': dashboard_data['nuevas'],
+            'pendientes': dashboard_data['pendientes'],
+            'valor_total': dashboard_data['valor_total'],
+            'procesadas': 15,
+            'tiempo_promedio': '32 horas'
+        }
+    })
+
+# API para obtener datos del módulo de ingesta de correo
+@app.route('/api/ingesta-correo/stats')
+@login_required
+def ingesta_correo_stats():
+    return jsonify({
+        'correos_procesados': 24,
+        'glosas_extraidas': 16,
+        'pendientes': 3,
+        'errores': 1,
+        'ultima_verificacion': '2023-11-10 09:45:00',
+        'proximo_escaneo': '2023-11-10 09:50:00',
+        'reglas_activas': 3
+    })
+
+# API para obtener datos del módulo de extracción de datos
+@app.route('/api/extraccion-datos/stats')
+@login_required
+def extraccion_datos_stats():
+    return jsonify({
+        'documentos_procesados': 45,
+        'tasa_exito': 93,
+        'esperando_ocr': 3,
+        'errores': 2,
+        'por_tipo': {
+            'excel': {
+                'procesados': 32,
+                'eficiencia': 95
+            },
+            'pdf': {
+                'procesados': 10,
+                'eficiencia': 75
+            },
+            'ocr': {
+                'procesados': 3,
+                'eficiencia': 60
+            }
+        }
+    })
+
+# API para obtener datos del módulo de flujo de trabajo
+@app.route('/api/flujo-trabajo/stats')
+@login_required
+def flujo_trabajo_stats():
+    return jsonify({
+        'glosas_por_etapa': {
+            'recepcion': 12,
+            'procesamiento': 28,
+            'revision': 32,
+            'respuesta': 8
+        },
+        'tiempo_promedio': {
+            'recepcion': 2,
+            'procesamiento': 6,
+            'revision': 36,
+            'respuesta': 10
+        },
+        'reglas_activas': 3,
+        'automatizaciones_activas': 4
+    })
+
+# API para obtener datos del módulo de generación de PDF
+@app.route('/api/generacion-pdf/stats')
+@login_required
+def generacion_pdf_stats():
+    return jsonify({
+        'pdfs_generados_hoy': 45,
+        'tiempo_promedio': 2.5,
+        'tamanio_promedio': 420,
+        'errores_hoy': 2,
+        'en_cola': 5,
+        'por_hora': [5, 9, 12, 7, 8, 10, 4]
+    })
 
 # Manejador de error 404
 @app.errorhandler(404)

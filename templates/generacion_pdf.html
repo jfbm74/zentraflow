@@ -1,0 +1,561 @@
+{% extends "layout.html" %}
+
+{% block title %}Generación PDF - Glosas Pro{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+        <h1 class="h2"><i class="bi bi-file-earmark-pdf text-primary me-2"></i>Módulo de Generación PDF</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-gear"></i> Configuración
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-download"></i> Plantillas
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estado del Servicio -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary">Estado del Servicio</h5>
+                    <span class="badge bg-success">Activo</span>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <h2 class="display-4 text-primary">45</h2>
+                                <p class="text-muted">PDFs Generados (Hoy)</p>
+                                <div class="progress mt-2" style="height: 5px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 75%"></div>
+                                </div>
+                                <small class="text-muted">75% más que ayer</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="chart-container" style="position: relative; height:150px;">
+                                <canvas id="pdfGenerationChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded">
+                                <h6>Estadísticas</h6>
+                                <ul class="list-group list-group-flush small">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Tiempo promedio de generación
+                                        <span class="badge bg-primary rounded-pill">2.5s</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Tamaño promedio
+                                        <span class="badge bg-primary rounded-pill">420KB</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Errores hoy
+                                        <span class="badge bg-danger rounded-pill">2</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        En cola
+                                        <span class="badge bg-warning rounded-pill">5</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plantillas de PDF -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary">Plantillas de PDF</h5>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#nuevaPlantillaModal">
+                        <i class="bi bi-plus-circle"></i> Nueva Plantilla
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header bg-primary text-white">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Plantilla Estándar</span>
+                                        <span class="badge bg-light text-primary">Principal</span>
+                                    </div>
+                                </div>
+                                <img src="{{ url_for('static', filename='img/template-preview-1.png') }}" class="card-img-top p-2" alt="Plantilla Estándar">
+                                <div class="card-body">
+                                    <p class="card-text small">Formato general para respuesta de glosas con tabla detallada de ítems.</p>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="btn-group btn-group-sm w-100">
+                                        <button class="btn btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Ver
+                                        </button>
+                                        <button class="btn btn-outline-secondary">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header bg-secondary text-white">
+                                    <span>Plantilla Minimalista</span>
+                                </div>
+                                <img src="{{ url_for('static', filename='img/template-preview-2.png') }}" class="card-img-top p-2" alt="Plantilla Minimalista">
+                                <div class="card-body">
+                                    <p class="card-text small">Formato simplificado sin encabezados elaborados, optimizado para impresión.</p>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="btn-group btn-group-sm w-100">
+                                        <button class="btn btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Ver
+                                        </button>
+                                        <button class="btn btn-outline-secondary">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header bg-secondary text-white">
+                                    <span>Plantilla Aseguradora S.A.</span>
+                                </div>
+                                <img src="{{ url_for('static', filename='img/template-preview-3.png') }}" class="card-img-top p-2" alt="Plantilla Aseguradora">
+                                <div class="card-body">
+                                    <p class="card-text small">Formato específico para Seguros Salud S.A. con su logotipo y estilo corporativo.</p>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="btn-group btn-group-sm w-100">
+                                        <button class="btn btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Ver
+                                        </button>
+                                        <button class="btn btn-outline-secondary">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <div class="card h-100 new-template">
+                                <div class="card-body text-center d-flex align-items-center justify-content-center">
+                                    <div>
+                                        <i class="bi bi-plus-circle text-primary" style="font-size: 3rem;"></i>
+                                        <p class="mt-3">Crear nueva plantilla</p>
+                                        <button class="btn btn-outline-primary btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#nuevaPlantillaModal">
+                                            Nueva Plantilla
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historial de Generación -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary">Historial de Generación</h5>
+                    <button class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-download"></i> Exportar Historial
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Glosa</th>
+                                    <th>Plantilla</th>
+                                    <th>Fecha Generación</th>
+                                    <th>Tamaño</th>
+                                    <th>Usuario</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>PDF-1023</td>
+                                    <td>
+                                        <a href="#" class="text-primary">Glosa #5 - Seguros Salud S.A.</a>
+                                    </td>
+                                    <td>Plantilla Estándar</td>
+                                    <td>29/10/2023 10:45</td>
+                                    <td>412 KB</td>
+                                    <td>Usuario Regular</td>
+                                    <td><span class="badge bg-success">Completado</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary">
+                                                <i class="bi bi-download"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary">
+                                                <i class="bi bi-arrow-repeat"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>PDF-1022</td>
+                                    <td>
+                                        <a href="#" class="text-primary">Glosa #4 - Asistencia Médica</a>
+                                    </td>
+                                    <td>Plantilla Minimalista</td>
+                                    <td>29/10/2023 09:30</td>
+                                    <td>385 KB</td>
+                                    <td>Administrador</td>
+                                    <td><span class="badge bg-success">Completado</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary">
+                                                <i class="bi bi-download"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary">
+                                                <i class="bi bi-arrow-repeat"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>PDF-1021</td>
+                                    <td>
+                                        <a href="#" class="text-primary">Glosa #3 - Protección Total</a>
+                                    </td>
+                                    <td>Plantilla Estándar</td>
+                                    <td>29/10/2023 08:15</td>
+                                    <td>456 KB</td>
+                                    <td>Usuario Regular</td>
+                                    <td><span class="badge bg-success">Completado</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary">
+                                                <i class="bi bi-download"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary">
+                                                <i class="bi bi-arrow-repeat"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>PDF-1020</td>
+                                    <td>
+                                        <a href="#" class="text-primary">Glosa #2 - MediSeguro</a>
+                                    </td>
+                                    <td>Plantilla Estándar</td>
+                                    <td>28/10/2023 17:45</td>
+                                    <td>398 KB</td>
+                                    <td>Administrador</td>
+                                    <td><span class="badge bg-danger">Error</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-danger">
+                                                <i class="bi bi-exclamation-triangle"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary">
+                                                <i class="bi bi-arrow-repeat"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>PDF-1019</td>
+                                    <td>
+                                        <a href="#" class="text-primary">Glosa #1 - Seguros Salud S.A.</a>
+                                    </td>
+                                    <td>Plantilla Aseguradora S.A.</td>
+                                    <td>28/10/2023 15:30</td>
+                                    <td>425 KB</td>
+                                    <td>Usuario Regular</td>
+                                    <td><span class="badge bg-success">Completado</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary">
+                                                <i class="bi bi-download"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary">
+                                                <i class="bi bi-arrow-repeat"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <nav aria-label="Paginación">
+                        <ul class="pagination justify-content-center m-0">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">Anterior</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Siguiente</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generación Manual -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Generación Manual de PDF</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="glosaSelect" class="form-label">Seleccione Glosa:</label>
+                                <select class="form-select" id="glosaSelect">
+                                    <option value="">Seleccione una glosa...</option>
+                                    <option value="5">Glosa #5 - Seguros Salud S.A.</option>
+                                    <option value="4">Glosa #4 - Asistencia Médica</option>
+                                    <option value="3">Glosa #3 - Protección Total</option>
+                                    <option value="2">Glosa #2 - MediSeguro</option>
+                                    <option value="1">Glosa #1 - Seguros Salud S.A.</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="plantillaSelect" class="form-label">Seleccione Plantilla:</label>
+                                <select class="form-select" id="plantillaSelect">
+                                    <option value="">Seleccione una plantilla...</option>
+                                    <option value="1">Plantilla Estándar</option>
+                                    <option value="2">Plantilla Minimalista</option>
+                                    <option value="3">Plantilla Aseguradora S.A.</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="incluirAnexos">
+                                    <label class="form-check-label" for="incluirAnexos">Incluir documentos anexos</label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="incluirFirma" checked>
+                                    <label class="form-check-label" for="incluirFirma">Incluir firma digital</label>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="showToast('Iniciando generación del PDF...')">
+                                <i class="bi bi-file-earmark-pdf"></i> Generar PDF
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border p-3 rounded bg-light h-100">
+                                <h6 class="mb-3">Vista Previa</h6>
+                                <div id="pdfPreview" class="text-center">
+                                    <p class="text-muted my-5">
+                                        <i class="bi bi-file-earmark-pdf fs-1 d-block mb-3"></i>
+                                        Seleccione una glosa y una plantilla para ver la vista previa.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Nueva Plantilla -->
+<div class="modal fade" id="nuevaPlantillaModal" tabindex="-1" aria-labelledby="nuevaPlantillaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="nuevaPlantillaModalLabel">Crear Nueva Plantilla PDF</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="nombrePlantilla" class="form-label">Nombre de la Plantilla</label>
+                            <input type="text" class="form-control" id="nombrePlantilla" placeholder="Ej. Plantilla Personalizada">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="tipoPlantilla" class="form-label">Tipo de Plantilla</label>
+                            <select class="form-select" id="tipoPlantilla">
+                                <option value="estandar">Estándar</option>
+                                <option value="especifica">Específica para Aseguradora</option>
+                                <option value="personalizada">Completamente Personalizada</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="aseguradoraContainer" class="mb-3">
+                        <label for="aseguradoraPlantilla" class="form-label">Aseguradora (si aplica)</label>
+                        <select class="form-select" id="aseguradoraPlantilla">
+                            <option value="">Seleccione una aseguradora...</option>
+                            <option value="1">Seguros Salud S.A.</option>
+                            <option value="2">MediSeguro</option>
+                            <option value="3">Protección Total</option>
+                            <option value="4">Asistencia Médica</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="logoPlantilla" class="form-label">Logo (opcional)</label>
+                        <input class="form-control" type="file" id="logoPlantilla">
+                    </div>
+                    <hr>
+                    <div class="mb-3">
+                        <label class="form-label">Elementos a incluir</label>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="incluirEncabezado" checked>
+                                    <label class="form-check-label" for="incluirEncabezado">
+                                        Encabezado
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="incluirInfoGlosa" checked>
+                                    <label class="form-check-label" for="incluirInfoGlosa">
+                                        Información de Glosa
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="incluirTablaItems" checked>
+                                    <label class="form-check-label" for="incluirTablaItems">
+                                        Tabla de Ítems
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="incluirResumen" checked>
+                                    <label class="form-check-label" for="incluirResumen">
+                                        Resumen Financiero
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="incluirPieDocumento" checked>
+                                    <label class="form-check-label" for="incluirPieDocumento">
+                                        Pie de Documento
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="incluirNumPagina" checked>
+                                    <label class="form-check-label" for="incluirNumPagina">
+                                        Numeración de Páginas
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="colorPrimario" class="form-label">Color Primario</label>
+                        <input type="color" class="form-control form-control-color" id="colorPrimario" value="#32b874" title="Elegir color primario">
+                    </div>
+                    <div class="mb-3">
+                        <label for="orientacionPagina" class="form-label">Orientación de Página</label>
+                        <select class="form-select" id="orientacionPagina">
+                            <option value="vertical">Vertical</option>
+                            <option value="horizontal">Horizontal</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="showToast('Plantilla creada exitosamente')">Guardar Plantilla</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gráfico de generación de PDFs
+        const ctx = document.getElementById('pdfGenerationChart').getContext('2d');
+        const pdfGenerationChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['6:00', '8:00', '10:00', '12:00', '14:00', '16:00', '18:00'],
+                datasets: [{
+                    label: 'PDFs Generados',
+                    data: [5, 9, 12, 7, 8, 10, 4],
+                    backgroundColor: 'rgba(50, 184, 116, 0.2)',
+                    borderColor: '#32b874',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Ocultar/mostrar campo de aseguradora basado en el tipo de plantilla
+        const tipoPlantillaSelect = document.getElementById('tipoPlantilla');
+        const aseguradoraContainer = document.getElementById('aseguradoraContainer');
+        
+        if (tipoPlantillaSelect && aseguradoraContainer) {
+            tipoPlantillaSelect.addEventListener('change', function() {
+                if (this.value === 'especifica') {
+                    aseguradoraContainer.style.display = 'block';
+                } else {
+                    aseguradoraContainer.style.display = 'none';
+                }
+            });
+            
+            // Inicializar estado
+            aseguradoraContainer.style.display = (tipoPlantillaSelect.value === 'especifica') ? 'block' : 'none';
+        }
+    });
+</script>
+{% endblock %}

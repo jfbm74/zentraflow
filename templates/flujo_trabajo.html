@@ -1,0 +1,539 @@
+{% extends "layout.html" %}
+
+{% block title %}Flujo de Trabajo - Glosas Pro{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+        <h1 class="h2"><i class="bi bi-diagram-3 text-primary me-2"></i>Módulo de Flujo de Trabajo</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-gear"></i> Configuración
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-download"></i> Reportes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diagrama de Flujo -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary">Diagrama del Flujo de Trabajo</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-gear"></i>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <li><a class="dropdown-item" href="#">Ver detalles</a></li>
+                            <li><a class="dropdown-item" href="#">Exportar diagrama</a></li>
+                            <li><a class="dropdown-item" href="#">Personalizar vista</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body p-3">
+                    <div class="workflow-diagram text-center">
+                        <img src="{{ url_for('static', filename='img/workflow-diagram.png') }}" alt="Diagrama de Flujo de Trabajo" class="img-fluid" style="max-height: 300px;">
+                        <!-- Aquí iría un diagrama del flujo de trabajo, puede ser una imagen o un SVG interactivo -->
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Etapa</th>
+                                            <th>Descripción</th>
+                                            <th>Responsable</th>
+                                            <th>SLA</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><span class="badge bg-primary">1</span> Recepción</td>
+                                            <td>Ingesta de correos y extracción de adjuntos</td>
+                                            <td>Sistema</td>
+                                            <td>15 min</td>
+                                            <td><span class="badge bg-success">Activo</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-primary">2</span> Procesamiento</td>
+                                            <td>Extracción de datos estructurados</td>
+                                            <td>Sistema</td>
+                                            <td>30 min</td>
+                                            <td><span class="badge bg-success">Activo</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-primary">3</span> Revisión</td>
+                                            <td>Validación manual y toma de decisiones</td>
+                                            <td>Usuario</td>
+                                            <td>48 horas</td>
+                                            <td><span class="badge bg-success">Activo</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-primary">4</span> Respuesta</td>
+                                            <td>Generación de PDF y envío</td>
+                                            <td>Sistema/Usuario</td>
+                                            <td>24 horas</td>
+                                            <td><span class="badge bg-success">Activo</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-primary">5</span> Seguimiento</td>
+                                            <td>Monitoreo de respuesta de aseguradora</td>
+                                            <td>Usuario</td>
+                                            <td>5 días</td>
+                                            <td><span class="badge bg-warning">Configurando</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reglas de Negocio y Automatizaciones -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary">Reglas de Negocio</h5>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#nuevaReglaModal">
+                        <i class="bi bi-plus-circle"></i> Nueva Regla
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Condición</th>
+                                    <th>Acción</th>
+                                    <th>Prioridad</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Decisión Automática CX</td>
+                                    <td>Valor < $50,000</td>
+                                    <td>Aceptar Automáticamente</td>
+                                    <td><span class="badge bg-danger">Alta</span></td>
+                                    <td><span class="badge bg-success">Activa</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Alerta Valor Alto</td>
+                                    <td>Valor > $5,000,000</td>
+                                    <td>Notificar Supervisor</td>
+                                    <td><span class="badge bg-warning">Media</span></td>
+                                    <td><span class="badge bg-success">Activa</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Asignación Automática</td>
+                                    <td>Aseguradora = "MediSeguro"</td>
+                                    <td>Asignar a Equipo A</td>
+                                    <td><span class="badge bg-info">Normal</span></td>
+                                    <td><span class="badge bg-success">Activa</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Escalado por Tiempo</td>
+                                    <td>Sin respuesta > 24h</td>
+                                    <td>Escalar a Gerencia</td>
+                                    <td><span class="badge bg-danger">Alta</span></td>
+                                    <td><span class="badge bg-warning">En Prueba</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">Las reglas se evalúan en orden de prioridad</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary">Automatizaciones</h5>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#nuevaAutomatizacionModal">
+                        <i class="bi bi-plus-circle"></i> Nueva Automatización
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <div class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Notificación de Nuevas Glosas</h6>
+                                <small><span class="badge bg-success">Activa</span></small>
+                            </div>
+                            <p class="mb-1 small">Envía notificación por correo a los usuarios asignados cuando ingresa una nueva glosa.</p>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <small class="text-muted">Trigger: Creación de Glosa</small>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="switchNotif1" checked>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Alerta de Vencimiento</h6>
+                                <small><span class="badge bg-success">Activa</span></small>
+                            </div>
+                            <p class="mb-1 small">Alerta 24h antes del vencimiento del plazo de respuesta para glosas sin procesar.</p>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <small class="text-muted">Trigger: Diario (8:00 AM)</small>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="switchNotif2" checked>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Respuesta Automática</h6>
+                                <small><span class="badge bg-warning">En Prueba</span></small>
+                            </div>
+                            <p class="mb-1 small">Genera automáticamente respuestas para glosas de bajo valor (< $100,000) con decisión predeterminada.</p>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <small class="text-muted">Trigger: Procesamiento Completo</small>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="switchNotif3">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Generación de Informe Semanal</h6>
+                                <small><span class="badge bg-success">Activa</span></small>
+                            </div>
+                            <p class="mb-1 small">Envía informe resumido de actividad de glosas a la gerencia todos los lunes.</p>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <small class="text-muted">Trigger: Lunes (7:00 AM)</small>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="switchNotif4" checked>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">4 automatizaciones activas, 1 en prueba</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estado de Glosas por Etapa -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary">Estado de Glosas por Etapa</h5>
+                    <button class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-clockwise"></i> Actualizar
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 col-6 mb-4">
+                            <div class="p-3 rounded-3 shadow-sm border-start border-5 border-primary">
+                                <h2 class="display-5 text-primary">12</h2>
+                                <p class="text-muted mb-0">Recepción</p>
+                                <div class="progress mt-2" style="height: 5px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 15%"></div>
+                                </div>
+                                <small class="text-muted">15% del total</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-4">
+                            <div class="p-3 rounded-3 shadow-sm border-start border-5 border-info">
+                                <h2 class="display-5 text-info">28</h2>
+                                <p class="text-muted mb-0">Procesamiento</p>
+                                <div class="progress mt-2" style="height: 5px;">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: 35%"></div>
+                                </div>
+                                <small class="text-muted">35% del total</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-4">
+                            <div class="p-3 rounded-3 shadow-sm border-start border-5 border-warning">
+                                <h2 class="display-5 text-warning">32</h2>
+                                <p class="text-muted mb-0">Revisión</p>
+                                <div class="progress mt-2" style="height: 5px;">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 40%"></div>
+                                </div>
+                                <small class="text-muted">40% del total</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-4">
+                            <div class="p-3 rounded-3 shadow-sm border-start border-5 border-success">
+                                <h2 class="display-5 text-success">8</h2>
+                                <p class="text-muted mb-0">Respuesta</p>
+                                <div class="progress mt-2" style="height: 5px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 10%"></div>
+                                </div>
+                                <small class="text-muted">10% del total</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container mt-4" style="position: relative; height:250px;">
+                        <canvas id="workflowChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Nueva Regla -->
+<div class="modal fade" id="nuevaReglaModal" tabindex="-1" aria-labelledby="nuevaReglaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="nuevaReglaModalLabel">Crear Nueva Regla de Negocio</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="nombreRegla" class="form-label">Nombre de la Regla</label>
+                        <input type="text" class="form-control" id="nombreRegla" placeholder="Ej. Asignación Automática">
+                    </div>
+                    <div class="mb-3">
+                        <label for="tipoCondicion" class="form-label">Tipo de Condición</label>
+                        <select class="form-select" id="tipoCondicion">
+                            <option>Valor de glosa</option>
+                            <option>Aseguradora</option>
+                            <option>Tiempo transcurrido</option>
+                            <option>Estado</option>
+                            <option>Tipo de ítem</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="operadorCondicion" class="form-label">Operador</label>
+                        <select class="form-select" id="operadorCondicion">
+                            <option>igual a (=)</option>
+                            <option>mayor que (>)</option>
+                            <option>menor que (<)</option>
+                            <option>contiene</option>
+                            <option>no contiene</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="valorCondicion" class="form-label">Valor</label>
+                        <input type="text" class="form-control" id="valorCondicion" placeholder="Ej. 100000, MediSeguro, 24">
+                    </div>
+                    <div class="mb-3">
+                        <label for="accionRegla" class="form-label">Acción</label>
+                        <select class="form-select" id="accionRegla">
+                            <option>Aceptar Automáticamente</option>
+                            <option>Notificar Usuario</option>
+                            <option>Notificar Supervisor</option>
+                            <option>Asignar a...</option>
+                            <option>Escalar</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="prioridadRegla" class="form-label">Prioridad</label>
+                        <select class="form-select" id="prioridadRegla">
+                            <option>Alta</option>
+                            <option>Media</option>
+                            <option>Normal</option>
+                            <option>Baja</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="estadoRegla" checked>
+                        <label class="form-check-label" for="estadoRegla">Regla activa</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="showToast('Regla creada exitosamente')">Guardar Regla</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Nueva Automatización -->
+<div class="modal fade" id="nuevaAutomatizacionModal" tabindex="-1" aria-labelledby="nuevaAutomatizacionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="nuevaAutomatizacionModalLabel">Crear Nueva Automatización</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="nombreAutomatizacion" class="form-label">Nombre de la Automatización</label>
+                        <input type="text" class="form-control" id="nombreAutomatizacion" placeholder="Ej. Notificación Diaria">
+                    </div>
+                    <div class="mb-3">
+                        <label for="tipoTrigger" class="form-label">Tipo de Trigger</label>
+                        <select class="form-select" id="tipoTrigger">
+                            <option>Evento (Creación de Glosa)</option>
+                            <option>Evento (Procesamiento Completado)</option>
+                            <option>Evento (Cambio de Estado)</option>
+                            <option>Programado (Diario)</option>
+                            <option>Programado (Semanal)</option>
+                            <option>Programado (Mensual)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="detallesTrigger" class="form-label">Detalles del Trigger</label>
+                        <input type="text" class="form-control" id="detallesTrigger" placeholder="Ej. 8:00 AM, Lunes, etc.">
+                    </div>
+                    <div class="mb-3">
+                        <label for="tipoAccion" class="form-label">Tipo de Acción</label>
+                        <select class="form-select" id="tipoAccion">
+                            <option>Enviar Correo</option>
+                            <option>Notificación en Sistema</option>
+                            <option>Generar Reporte</option>
+                            <option>Cambiar Estado</option>
+                            <option>Asignar Usuario</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="detallesAccion" class="form-label">Detalles de la Acción</label>
+                        <textarea class="form-control" id="detallesAccion" rows="3" placeholder="Ej. Destinatarios, mensaje, formato de reporte, etc."></textarea>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="estadoAutomatizacion" checked>
+                        <label class="form-check-label" for="estadoAutomatizacion">Automatización activa</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="showToast('Automatización creada exitosamente')">Guardar Automatización</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gráfico de flujo de trabajo
+        const ctx = document.getElementById('workflowChart').getContext('2d');
+        const workflowChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Recepción', 'Procesamiento', 'Revisión', 'Respuesta'],
+                datasets: [{
+                    label: 'Glosas Actuales',
+                    data: [12, 28, 32, 8],
+                    backgroundColor: [
+                        'rgba(13, 110, 253, 0.7)',
+                        'rgba(13, 202, 240, 0.7)',
+                        'rgba(255, 193, 7, 0.7)',
+                        'rgba(25, 135, 84, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgb(13, 110, 253)',
+                        'rgb(13, 202, 240)',
+                        'rgb(255, 193, 7)',
+                        'rgb(25, 135, 84)'
+                    ],
+                    borderWidth: 1
+                }, {
+                    label: 'Tiempo Promedio (horas)',
+                    data: [2, 6, 36, 10],
+                    type: 'line',
+                    borderColor: '#6c757d',
+                    backgroundColor: 'rgba(108, 117, 125, 0.2)',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    fill: false,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Cantidad de Glosas'
+                        }
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Tiempo Promedio (horas)'
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
