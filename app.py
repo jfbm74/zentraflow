@@ -28,6 +28,11 @@ def create_app(config_name='default'):
     from modules import init_app as init_modules
     init_modules(app)
     
+    # Ruta principal (agregar aquí)
+    @app.route('/')
+    def index():
+        return redirect(url_for('auth.login'))
+    
     # Manejadores de error
     @app.errorhandler(404)
     def page_not_found(e):
