@@ -5,6 +5,8 @@ Punto de entrada principal para la aplicación Glosas Pro SaaS
 from flask import Flask, render_template, redirect, url_for, request, session, flash, jsonify, g
 import os
 from dotenv import load_dotenv
+from modules.clientes.models import Cliente  # <--- ¡Importa también Cliente!
+from modules.usuarios.models import Usuario
 
 # Cargar variables de entorno
 load_dotenv()
@@ -27,6 +29,13 @@ def create_app(config_name='default'):
     # Registrar blueprints
     from modules import init_app as init_modules
     init_modules(app)
+
+    @app.route('/')
+    def index():
+        if 'user_id' in session:
+            return redirect(url_for('dashboard.index'))
+        else:
+            return redirect(url_for('auth.login'))
     
     # Manejadores de error
     @app.errorhandler(404)

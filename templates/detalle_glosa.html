@@ -1,125 +1,126 @@
 {% extends "layout.html" %}
 
-{% block title %}Detalle de Glosa - Gestor de ZentraFlow{% endblock %}
+{% block title %}Detalle de Glosa - ZentraFlow{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
+    <!-- Encabezado -->
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Detalle de Glosa #{{ info.id }}</h1>
+        <h1 class="h2">Detalle de Glosa #{{ info.numero }}</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group me-2">
-                <a href="{{ url_for('bandeja_glosas') }}" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Volver a Bandeja
-                </a>
+                <button type="button" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-printer"></i> Imprimir
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-download"></i> Exportar
+                </button>
             </div>
+            <button type="button" class="btn btn-sm btn-primary">
+                <i class="bi bi-pencil"></i> Editar
+            </button>
         </div>
     </div>
 
-    <!-- Información General de la Glosa -->
+    <!-- Información General -->
     <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Información General</h5>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Información General</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <th>ID Glosa:</th>
-                                    <td>{{ info.id }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Aseguradora:</th>
-                                    <td>{{ info.aseguradora }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Factura:</th>
-                                    <td>{{ info.factura }}</td>
-                                </tr>
-                            </table>
+                            <p><strong>Aseguradora:</strong> {{ info.aseguradora }}</p>
+                            <p><strong>Fecha Recepción:</strong> {{ info.fecha_recepcion }}</p>
+                            <p><strong>Fecha Respuesta:</strong> {{ info.fecha_respuesta }}</p>
                         </div>
                         <div class="col-md-6">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <th>Fecha Recibido:</th>
-                                    <td>{{ info.fecha }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Estado:</th>
-                                    <td>
-                                        {% if info.estado == "Nuevo" %}
-                                        <span class="badge bg-info">{{ info.estado }}</span>
-                                        {% elif info.estado == "En Análisis" %}
-                                        <span class="badge bg-warning">{{ info.estado }}</span>
-                                        {% elif info.estado == "Respondida" %}
-                                        <span class="badge bg-success">{{ info.estado }}</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Valor Total:</th>
-                                    <td class="fw-bold">{{ info.valor_total }}</td>
-                                </tr>
-                            </table>
+                            <p><strong>Estado:</strong> 
+                                <span class="badge {% if info.estado == 'Pendiente' %}bg-warning
+                                    {% elif info.estado == 'Respondida' %}bg-success
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ info.estado }}
+                                </span>
+                            </p>
+                            <p><strong>Valor Total:</strong> {{ info.valor_total }}</p>
+                            <p><strong>Valor Glosado:</strong> {{ info.valor_glosado }}</p>
                         </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <p><strong>Descripción:</strong></p>
+                            <p>{{ info.descripcion }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Documentos Adjuntos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for documento in documentos %}
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ documento.nombre }}</h6>
+                                <small>{{ documento.tamanio }}</small>
+                            </div>
+                            <small class="text-muted">
+                                <i class="bi bi-file-earmark-pdf"></i> {{ documento.tipo }} - {{ documento.fecha }}
+                            </small>
+                        </a>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Ítems de la Glosa -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card shadow">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Acciones</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12 text-end">
-                            <button type="button" class="btn btn-secondary me-2" onclick="showAlert('Borrador guardado con éxito')">
-                                <i class="bi bi-save"></i> Guardar Borrador
-                            </button>
-                            <button type="button" class="btn btn-primary" onclick="showAlert('Generando PDF...')">
-                                <i class="bi bi-file-earmark-pdf"></i> Finalizar y Generar PDF
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- Detalle de Ítems -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Detalle de Ítems</h5>
         </div>
-    </div>
-
-    <!-- Historial de Cambios (Opcional) -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card shadow">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Historial de Cambios</h5>
-                </div>
-                <div class="card-body">
-                    <ul class="list-group">
-                        <li class="list-group-item">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">Creación de la glosa</h6>
-                                <small>15/10/2023 10:30 AM</small>
-                            </div>
-                            <p class="mb-1">Glosa registrada en el sistema</p>
-                            <small>Usuario: admin@clinica.com</small>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">Asignación para análisis</h6>
-                                <small>16/10/2023 09:15 AM</small>
-                            </div>
-                            <p class="mb-1">Asignado a departamento de facturación</p>
-                            <small>Usuario: supervisor@clinica.com</small>
-                        </li>
-                    </ul>
-                </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Servicio</th>
+                            <th>Fecha</th>
+                            <th>Valor</th>
+                            <th>Valor Glosado</th>
+                            <th>Motivo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.id }}</td>
+                            <td>{{ item.servicio }}</td>
+                            <td>{{ item.fecha }}</td>
+                            <td>{{ item.valor }}</td>
+                            <td>{{ item.valor_glosado }}</td>
+                            <td>{{ item.motivo }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" title="Ver detalle">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-success" title="Responder">
+                                    <i class="bi bi-reply"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -133,51 +134,3 @@
     }
 </script>
 {% endblock %}
-                    <h5 class="mb-0">Ítems Glosados</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-bordered">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Código Ítem</th>
-                                    <th>Descripción</th>
-                                    <th>Valor Glosado</th>
-                                    <th>Decisión</th>
-                                    <th>Justificación</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in items %}
-                                <tr>
-                                    <td>{{ item.codigo }}</td>
-                                    <td>{{ item.descripcion }}</td>
-                                    <td>{{ item.valor }}</td>
-                                    <td>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="decision_{{ loop.index }}" id="aceptar_{{ loop.index }}" value="Acepta">
-                                            <label class="form-check-label" for="aceptar_{{ loop.index }}">Acepta</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="decision_{{ loop.index }}" id="noAceptar_{{ loop.index }}" value="No Acepta">
-                                            <label class="form-check-label" for="noAceptar_{{ loop.index }}">No Acepta</label>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <textarea class="form-control" id="justificacion_{{ loop.index }}" rows="2" placeholder="Escriba su justificación aquí..."></textarea>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Acciones -->
-    <div class="row mb-5">
-        <div class="col-md-12">
-            <div class="card shadow">
-                <div class="card-header bg-light">

@@ -1,0 +1,75 @@
+<div class="user-profile text-center mb-4">
+    <div class="avatar">
+        <span>{{ user_name[0] }}</span>
+    </div>
+    <h6 class="mt-2 mb-0">{{ user_name }}</h6>
+    <small class="text-muted">{{ user_email }}</small>
+</div>
+
+<h6 class="sidebar-heading px-3 mt-4 mb-1 text-uppercase">
+    <span>Principal</span>
+</h6>
+<ul class="nav flex-column">
+    <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}" href="{{ url_for('dashboard.index') }}">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'glosas.bandeja_glosas' %}active{% endif %}" href="{{ url_for('glosas.bandeja_glosas') }}">
+            <i class="bi bi-inbox"></i> Bandeja de Glosas
+        </a>
+    </li>
+</ul>
+
+<h6 class="sidebar-heading px-3 mt-4 mb-1 text-uppercase">
+    <span>Módulos</span>
+</h6>
+<ul class="nav flex-column">
+    <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'ingesta_correo.ingesta_correo' %}active{% endif %}" href="{{ url_for('ingesta_correo.ingesta_correo') }}">
+            <i class="bi bi-envelope-check"></i> Ingesta de Correo
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'extraccion_datos.extraccion_datos' %}active{% endif %}" href="{{ url_for('extraccion_datos.extraccion_datos') }}">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Extracción de Datos
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'flujo_trabajo.flujo_trabajo' %}active{% endif %}" href="{{ url_for('flujo_trabajo.flujo_trabajo') }}">
+            <i class="bi bi-diagram-3"></i> Flujo de Trabajo
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'generacion_pdf.generacion_pdf' %}active{% endif %}" href="{{ url_for('generacion_pdf.generacion_pdf') }}">
+            <i class="bi bi-file-earmark-pdf"></i> Generación PDF
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'reportes.reportes' %}active{% endif %}" href="{{ url_for('reportes.reportes') }}">
+            <i class="bi bi-bar-chart"></i> Reportes
+        </a>
+    </li>
+</ul>
+
+<h6 class="sidebar-heading px-3 mt-4 mb-1 text-uppercase">
+    <span>Administración</span>
+</h6>
+<ul class="nav flex-column">
+    <li class="nav-item">
+        <a class="nav-link" href="#">
+            <i class="bi bi-gear"></i> Configuración
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="#">
+            <i class="bi bi-shield-check"></i> Auditoría
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link text-danger" href="{{ url_for('auth.logout') }}">
+            <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+        </a>
+    </li>
+</ul> 
