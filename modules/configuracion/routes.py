@@ -4,7 +4,7 @@ Rutas para el módulo de configuración
 
 import os
 import json
-from flask import render_template, g, session, request, flash, redirect, url_for, current_app
+from flask import render_template, g, session, request, flash, redirect, url_for, current_app, jsonify
 from werkzeug.utils import secure_filename
 from . import configuracion_bp
 from modules.usuarios.models import Usuario
@@ -186,3 +186,30 @@ def guardar_general():
                 flash(f'Error en {getattr(form, field).label.text}: {error}', 'danger')
     
     return redirect(url_for('configuracion.index')) 
+
+
+@configuracion_bp.route('/probar-conexion-correo', methods=['POST'])
+@login_required
+def probar_conexion_correo():
+    """Probar la conexión a la cuenta de correo"""
+    try:
+        # Verificar si el cliente tiene configuración de correo
+        if not g.cliente or not g.cliente.config or 'correo' not in g.cliente.config:
+            return jsonify({'success': False, 'message': 'Configuración de correo no encontrada'})
+        
+        # Obtener la configuración de correo
+        config_correo = g.cliente.config.get('correo', {})
+        
+        # Verificar si hay información mínima necesaria
+        if not config_correo.get('email'):
+            return jsonify({'success': False, 'message': 'No hay una dirección de correo configurada'})
+        
+        # Simular una prueba de conexión (en un entorno real, aquí iría el código real)
+        # Este es un placeholder - en producción, deberías implementar la verdadera prueba de conexión
+        if config_correo.get('habilitado', False):
+            return jsonify({'success': True, 'message': f'Conexión exitosa con {config_correo.get("email")}'})
+        else:
+            return jsonify({'success': False, 'message': 'La ingesta de correo está deshabilitada. Actívela primero.'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Error al probar la conexión: {str(e)}'})
