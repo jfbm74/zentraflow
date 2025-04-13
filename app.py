@@ -3,7 +3,6 @@ Punto de entrada principal para la aplicación Glosas Pro SaaS
 """
 
 from flask import Flask, render_template, redirect, url_for, request, session, flash, jsonify, g
-from flask_login import LoginManager
 import os
 from dotenv import load_dotenv
 from modules.clientes.models import Cliente  # <--- ¡Importa también Cliente!
@@ -27,15 +26,6 @@ def create_app(config_name='default'):
     # Inicializar base de datos
     init_db(app)
     
-    # Inicializar LoginManager
-    login_manager = LoginManager()
-    login_manager.init_app(app)
-    login_manager.login_view = 'auth.login'
-    
-    @login_manager.user_loader
-    def load_user(user_id):
-        return db.session.get(Usuario, int(user_id))
-    
     # Registrar blueprints
     from modules import init_app as init_modules
     init_modules(app)
@@ -43,9 +33,6 @@ def create_app(config_name='default'):
     @app.route('/')
     def index():
         if 'user_id' in session:
-            # Si el usuario está en la ruta de configuración, no redirigir
-            if request.endpoint and request.endpoint.startswith('configuracion.'):
-                return None
             return redirect(url_for('dashboard.index'))
         else:
             return redirect(url_for('auth.login'))
@@ -62,21 +49,7 @@ def create_app(config_name='default'):
     # Middleware para verificar el cliente (tenant) basado en el usuario en sesión
     @app.before_request
     def set_cliente_from_session():
-        # Excluir rutas que no necesitan verificación de cliente
-        excluded_routes = ['auth.login', 'auth.logout', 'static']
-        
-        # Si es una ruta de configuración, manejar de manera especial
-        if request.endpoint and request.endpoint.startswith('configuracion.'):
-            if 'user_id' in session:
-                user_id = session.get('user_id')
-                user = db.session.get(Usuario, user_id)
-                if user:
-                    g.usuario = user
-                    if user.cliente_id:
-                        g.cliente = db.session.get(Cliente, user.cliente_id)
-            return None
-        
-        if 'user_id' in session and request.endpoint not in excluded_routes:
+        if 'user_id' in session and request.endpoint not in ['auth.login', 'auth.logout', 'static']:
             user_id = session.get('user_id')
             user = db.session.get(Usuario, user_id)
             if user:
