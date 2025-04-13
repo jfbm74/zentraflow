@@ -1,9 +1,9 @@
 <div class="user-profile text-center mb-4">
     <div class="avatar">
-        <span>{{ user_name[0] }}</span>
+        <span>{{ user_name[0] if user_name else 'U' }}</span>
     </div>
-    <h6 class="mt-2 mb-0">{{ user_name }}</h6>
-    <small class="text-muted">{{ user_email }}</small>
+    <h6 class="mt-2 mb-0">{{ user_name if user_name else 'Usuario' }}</h6>
+    <small class="text-muted">{{ user_email if user_email else '' }}</small>
 </div>
 
 <h6 class="sidebar-heading px-3 mt-4 mb-1 text-uppercase">
@@ -58,7 +58,7 @@
 </h6>
 <ul class="nav flex-column">
     <li class="nav-item">
-        <a class="nav-link" href="#">
+        <a class="nav-link {% if request.endpoint == 'configuracion.index' %}active{% endif %}" href="{{ url_for('configuracion.index') }}">
             <i class="bi bi-gear"></i> Configuración
         </a>
     </li>

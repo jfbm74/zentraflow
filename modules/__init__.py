@@ -16,6 +16,7 @@ def init_app(app):
     from .flujo_trabajo import flujo_trabajo_bp
     from .generacion_pdf import generacion_pdf_bp
     from .reportes import reportes_bp
+    from .configuracion import configuracion_bp
     
     # Registrar blueprints
     app.register_blueprint(clientes_bp)
@@ -28,3 +29,4 @@ def init_app(app):
     app.register_blueprint(flujo_trabajo_bp)
     app.register_blueprint(generacion_pdf_bp)
     app.register_blueprint(reportes_bp)
+    app.register_blueprint(configuracion_bp)

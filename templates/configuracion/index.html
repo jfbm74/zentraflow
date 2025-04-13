@@ -1,0 +1,243 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ titulo }} - ZentraFlow{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h2 class="mb-4">{{ titulo }}</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <ul class="nav nav-tabs mb-4" id="configTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab" aria-controls="general" aria-selected="true">
+                <i class="fas fa-cog me-2"></i>General
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="correo-tab" data-bs-toggle="tab" data-bs-target="#correo" type="button" role="tab" aria-controls="correo" aria-selected="false">
+                <i class="fas fa-envelope me-2"></i>Configuración de Correo
+            </button>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#notificaciones" data-bs-toggle="tab">
+                <i class="bi bi-bell"></i> Notificaciones
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#seguridad" data-bs-toggle="tab">
+                <i class="bi bi-shield-lock"></i> Seguridad
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="configTabsContent">
+        <!-- Pestaña de Configuración General -->
+        <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('configuracion.guardar_general') }}" enctype="multipart/form-data">
+                        {{ form_general.csrf_token }}
+                        
+                        <div class="mb-3">
+                            {{ form_general.nombre.label(class="form-label") }}
+                            {{ form_general.nombre(class="form-control") }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_general.nit.label(class="form-label") }}
+                            {{ form_general.nit(class="form-control") }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_general.logo.label(class="form-label") }}
+                            {{ form_general.logo(class="form-control") }}
+                            {% if cliente and cliente.config.get('logo_url') %}
+                                <div class="mt-2">
+                                    <img src="{{ url_for('static', filename=cliente.config.get('logo_url')) }}" alt="Logo actual" class="img-thumbnail" style="max-height: 100px;">
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_general.timezone.label(class="form-label") }}
+                            {{ form_general.timezone(class="form-select") }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_general.date_format.label(class="form-label") }}
+                            {{ form_general.date_format(class="form-select") }}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Guardar Configuración General
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña de Configuración de Correo -->
+        <div class="tab-pane fade" id="correo" role="tabpanel" aria-labelledby="correo-tab">
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('configuracion.guardar_correo') }}" enctype="multipart/form-data">
+                        {{ form_correo.csrf_token }}
+
+                        <div class="mb-3 form-check form-switch">
+                            {{ form_correo.habilitar_ingesta(class="form-check-input") }}
+                            {{ form_correo.habilitar_ingesta.label(class="form-check-label") }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_correo.email_monitorear.label(class="form-label") }}
+                            {{ form_correo.email_monitorear(class="form-control") }}
+                            <div class="form-text">Dirección de correo que se monitoreará para la ingesta de glosas.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_correo.metodo_autenticacion.label(class="form-label") }}
+                            {{ form_correo.metodo_autenticacion(class="form-select") }}
+                        </div>
+
+                        <div id="oauth2Fields" class="auth-fields">
+                            <div class="mb-3">
+                                {{ form_correo.client_id.label(class="form-label") }}
+                                {{ form_correo.client_id(class="form-control") }}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form_correo.client_secret.label(class="form-label") }}
+                                {{ form_correo.client_secret(class="form-control") }}
+                            </div>
+                        </div>
+
+                        <div id="serviceAccountFields" class="auth-fields" style="display: none;">
+                            <div class="mb-3">
+                                {{ form_correo.service_account_key.label(class="form-label") }}
+                                {{ form_correo.service_account_key(class="form-control") }}
+                                <div class="form-text">Archivo JSON con las credenciales de la cuenta de servicio.</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_correo.carpeta_monitorear.label(class="form-label") }}
+                            {{ form_correo.carpeta_monitorear(class="form-control") }}
+                            <div class="form-text">Carpeta del buzón que se monitoreará (por defecto: INBOX).</div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_correo.intervalo_verificacion.label(class="form-label") }}
+                            {{ form_correo.intervalo_verificacion(class="form-select") }}
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            {{ form_correo.marcar_leidos(class="form-check-input") }}
+                            {{ form_correo.marcar_leidos.label(class="form-check-label") }}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Guardar Configuración de Correo
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="notificaciones">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Configuración de Notificaciones</h5>
+                    <p class="card-text">Configuración de notificaciones en desarrollo...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="seguridad">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Configuración de Seguridad</h5>
+                    <p class="card-text">Configuración de seguridad en desarrollo...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Respaldo y Mantenimiento -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-tools"></i> Respaldo y Mantenimiento
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Último respaldo</h6>
+                    <p class="text-muted">
+                        <i class="bi bi-clock-history"></i> 
+                        Hace 2 días
+                    </p>
+                    <button class="btn btn-outline-primary">
+                        <i class="bi bi-download"></i> Descargar respaldo
+                    </button>
+                </div>
+                <div class="col-md-6">
+                    <h6>Estado del sistema</h6>
+                    <p class="text-success">
+                        <i class="bi bi-check-circle"></i>
+                        Todos los servicios funcionando correctamente
+                    </p>
+                    <button class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-clockwise"></i> Verificar estado
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Manejar la visibilidad de los campos de autenticación
+    const metodoAuth = document.querySelector('#metodo_autenticacion');
+    const oauth2Fields = document.querySelector('#oauth2Fields');
+    const serviceAccountFields = document.querySelector('#serviceAccountFields');
+
+    function toggleAuthFields() {
+        if (metodoAuth.value === 'oauth2') {
+            oauth2Fields.style.display = 'block';
+            serviceAccountFields.style.display = 'none';
+        } else {
+            oauth2Fields.style.display = 'none';
+            serviceAccountFields.style.display = 'block';
+        }
+    }
+
+    metodoAuth.addEventListener('change', toggleAuthFields);
+    toggleAuthFields(); // Ejecutar al cargar la página
+
+    // Activar la pestaña correcta si hay un parámetro en la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    if (tab) {
+        const tabElement = document.querySelector(`#${tab}-tab`);
+        if (tabElement) {
+            const tabTrigger = new bootstrap.Tab(tabElement);
+            tabTrigger.show();
+        }
+    }
+});
+</script>
+{% endblock %} 

@@ -51,11 +51,25 @@ def create_app(config_name='default'):
     def set_cliente_from_session():
         if 'user_id' in session and request.endpoint not in ['auth.login', 'auth.logout', 'static']:
             user_id = session.get('user_id')
-            user = Usuario.query.get(user_id)
+            user = db.session.get(Usuario, user_id)
             if user:
                 # Establecer variables globales para la plantilla
-                g.cliente = user.cliente
-                g.usuario = user
+                if user.cliente_id is None:
+                    session.clear()
+                    flash('Usuario sin cliente asignado. Por favor contacte al administrador.', 'danger')
+                    return redirect(url_for('auth.login'))
+                try:
+                    cliente = db.session.get(Cliente, user.cliente_id)
+                    if cliente is None:
+                        session.clear()
+                        flash('Cliente no encontrado. Por favor contacte al administrador.', 'danger')
+                        return redirect(url_for('auth.login'))
+                    g.cliente = cliente
+                    g.usuario = user
+                except Exception as e:
+                    session.clear()
+                    flash('Error al cargar el cliente. Por favor contacte al administrador.', 'danger')
+                    return redirect(url_for('auth.login'))
             else:
                 session.clear()
                 flash('Sesión inválida. Por favor inicie sesión nuevamente.', 'danger')

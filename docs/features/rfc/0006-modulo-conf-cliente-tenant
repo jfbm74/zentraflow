@@ -1,0 +1,116 @@
+# RFC-0002: Módulo de Configuración del Cliente (Tenant)
+
+## Objetivo
+Implementar una sección dentro de la aplicación web que permita a los usuarios administradores (tanto Super Admin como Administradores del Cliente) ver y gestionar la configuración específica de su respectivo cliente (tenant). Esta configuración controlará el comportamiento de otros módulos, como la Ingesta de Correo, Extracción de Datos, Flujo de Trabajo, etc.
+
+## Alcance
+Este RFC cubre:
+- Creación de una interfaz de usuario para la configuración del cliente.
+- Definición de los parámetros de configuración necesarios para los módulos iniciales (con énfasis en Ingesta de Correo - RFC-0001 Google Workspace).
+- Lógica de backend para guardar y recuperar la configuración de forma segura.
+- Control de acceso basado en roles para la edición de la configuración.
+
+**Fuera de Alcance (Inicial):**
+- Configuración de permisos granulares (más allá de los roles base).
+- Auditoría detallada de cambios de configuración (puede ser una mejora futura).
+- Asistentes de configuración complejos (wizard).
+
+## Diseño Técnico
+
+### Tecnologías y Librerías
+- **Lenguaje**: Python
+- **Framework**: Flask
+- **Frontend**: HTML, CSS (Bootstrap/Zentratek), JavaScript
+- **Formularios**: Flask-WTF
+- **Persistencia**: Modelo `Cliente` (campos JSON `config` y `config_correo`) de SQLAlchemy.
+
+### Funcionalidades
+
+#### 1. Acceso a la Configuración
+- Una nueva sección/ruta accesible desde el menú lateral para usuarios con rol `ADMIN` o `SUPER_ADMIN`.
+- Si es `ADMIN`, solo puede ver/editar la configuración de su propio cliente (`g.cliente`).
+- Si es `SUPER_ADMIN`, puede necesitar una forma adicional de seleccionar qué cliente configurar (potencialmente desde la lista de clientes existente).
+
+#### 2. Visualización de la Configuración Actual
+- La interfaz mostrará la configuración actual del cliente, organizada por módulos (pestañas o secciones).
+- **Importante:** Los campos sensibles (como Client Secret, Refresh Tokens, Contraseñas de API) **NUNCA** deben mostrarse directamente. Se usarán placeholders como `********` o "Configurado - Haga clic para actualizar".
+
+#### 3. Edición de la Configuración
+- Formularios (Flask-WTF) permitirán modificar los parámetros.
+- Validación de datos de entrada (tipos, formatos, obligatoriedad).
+- Mecanismo seguro para *actualizar* credenciales sensibles sin mostrar el valor actual.
+
+#### 4. Persistencia de la Configuración
+- Al guardar, los datos validados se serializarán (probablemente a JSON) y se almacenarán en los campos `config` y `config_correo` del modelo `Cliente` correspondiente.
+- Manejo adecuado de errores durante el guardado.
+
+#### 5. Parámetros de Configuración (MVP - Enfocado en Ingesta Google Workspace)
+
+*   **Sección: General**
+    *   Nombre del Cliente (Lectura/Edición limitada quizás solo para Super Admin)
+    *   NIT (Lectura)
+    *   Zona Horaria (Desplegable - Opcional inicial)
+    *   Logo para Reportes PDF (Subida de archivo - Opcional inicial)
+
+*   **Sección: Ingesta de Correo (Google Workspace)**
+    *   Habilitar Ingesta (Checkbox)
+    *   Correo Electrónico a Monitorear (Campo de texto, validación de email)
+    *   **Método de Autenticación** (Desplegable: "OAuth 2.0 Flujo Web", "Cuenta de Servicio") - *Determina qué campos de credenciales mostrar*.
+    *   **Credenciales (OAuth 2.0 Flujo Web):**
+        *   Client ID (Campo de texto)
+        *   Client Secret (Campo de contraseña - **Solo para actualizar**, no mostrar valor)
+        *   *Estado de Autorización* (Indicador: "No autorizado", "Autorizado", Botón "Autorizar/Re-autorizar" que inicia el flujo OAuth) - *El Refresh Token se guarda internamente, no se muestra*.
+    *   **Credenciales (Cuenta de Servicio):**
+        *   Archivo de Clave JSON (Subida de archivo - **Solo para actualizar**, no mostrar contenido).
+        *   *Estado de Configuración* (Indicador: "No configurado", "Archivo cargado").
+    *   Carpeta a Monitorear (Campo de texto, default: "INBOX")
+    *   Intervalo de Verificación (Desplegable o numérico, default: 5 minutos - Opcional inicial, puede ser fijo)
+    *   Marcar Correos como Leídos (Checkbox - *requiere permiso `gmail.modify`*)
+
+*   **Sección: Extracción de Datos** (Placeholder inicial)
+    *   Plantilla por Defecto (Desplegable)
+
+*   **Sección: Generación PDF** (Placeholder inicial)
+    *   Plantilla por Defecto (Desplegable)
+
+#### 6. Interfaz de Usuario
+- Un panel de control de configuración claro.
+- Uso de pestañas o secciones colapsables para organizar por módulo.
+- Formularios bien estructurados con etiquetas claras y ayuda contextual (tooltips).
+- Indicadores visuales para campos sensibles y estado de autorización/configuración.
+- Mensajes de éxito/error claros (usando `flash` o Toasts).
+
+## Endpoints / Rutas Propuestas
+- `GET /configuracion/` → Muestra el panel de configuración para el cliente actual (o permite selección para Super Admin).
+- `POST /configuracion/guardar` → Procesa el formulario y guarda los cambios en la BD.
+- `GET /configuracion/autorizar/google` → (Si se usa OAuth Flujo Web) Redirige a Google para iniciar el flujo de autorización.
+- `GET /configuracion/callback/google` → (Si se usa OAuth Flujo Web) Ruta a la que Google redirige después de la autorización para capturar el código y obtener tokens.
+
+## Modelos de Datos
+- **`Cliente`**: Principalmente los campos `config: JSON` y `config_correo: JSON`.
+
+## Seguridad
+- **Control de Acceso:** Rutas protegidas con `@login_required` y `@role_required(['admin', 'super_admin'])`. Lógica adicional para que `admin` solo acceda a su `cliente_id`.
+- **Almacenamiento de Credenciales:**
+    - Los Client Secrets y Refresh Tokens **DEBEN** almacenarse cifrados en la base de datos (usar librerías como `cryptography`).
+    - Las claves de Cuenta de Servicio deben almacenarse de forma segura (encriptadas en BD o en un sistema de gestión de secretos si la infraestructura lo permite).
+- **Visualización de Credenciales:** **NUNCA** mostrar secretos/tokens/claves en el frontend. Usar indicadores de estado y permitir solo la actualización.
+- **CSRF Protection:** Asegurar que los formularios usen protección CSRF (Flask-WTF lo hace por defecto).
+- **Validación:** Validar todos los datos tanto en el frontend (básico) como en el backend (completo).
+
+## Dependencias
+- Módulo de Autenticación (para roles y sesión).
+- Modelo `Cliente`.
+- Librerías de Google OAuth y API Client.
+- Librería de cifrado (si se guardan secretos en BD).
+- Otros módulos leerán la configuración almacenada aquí (ej. Ingesta de Correo).
+
+## MVP Scope
+✅ Interfaz básica con secciones General e Ingesta de Correo.
+✅ Campos para configurar cuenta de correo Google (Email, Método Auth, Client ID/Secret - solo update, botón Autorizar/subir keyfile).
+✅ Guardar configuración en `Cliente.config_correo`.
+✅ Lógica básica para iniciar flujo OAuth (si aplica) y guardar refresh token (cifrado).
+✅ El módulo de Ingesta (RFC-0001) debe poder leer esta configuración.
+❌ Configuración avanzada de otros módulos.
+❌ Selección de cliente para Super Admin (puede acceder editando directamente o desde la lista de clientes).
+❌ Cifrado completo de todos los secretos (depende de la estrategia final).
