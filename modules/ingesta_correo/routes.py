@@ -3,8 +3,10 @@ Rutas para el módulo de ingesta de correo
 """
 
 import json
+import io
+import csv
 from datetime import datetime, timedelta
-from flask import render_template, g, session, jsonify, request, flash, redirect, url_for
+from flask import render_template, g, session, jsonify, request, flash, redirect, url_for, send_file
 from sqlalchemy.orm.attributes import flag_modified
 from utils.auth import login_required, role_required
 from . import ingesta_correo_bp
@@ -12,8 +14,11 @@ from .models import CorreoIngestado, ReglaFiltrado
 from database import db
 from modules.usuarios.models import RolUsuario
 import logging
-from datetime import datetime
 from .forms import ReglaFiltradoForm
+from .services.ingesta_service import IngestaService
+from googleapiclient.discovery import build
+from dateutil import parser
+from .services.gmail_service import get_gmail_service
 
 # Configurar logger
 logger = logging.getLogger(__name__)
@@ -75,19 +80,24 @@ def ingesta_correo():
             logger.error(f"Error al obtener reglas de filtrado: {str(e)}")
             flash(f"Error al obtener reglas de filtrado: {str(e)}", "danger")
     
-    # Obtener correos recientes para el historial de actividad
+    # Obtener parámetros de paginación
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    # Obtener correos recientes para el historial de actividad con paginación
     historial = []
+    pagination = None
     if g.cliente:
         try:
-            # Obtener correos de los últimos 7 días
-            fecha_desde = datetime.utcnow() - timedelta(days=7)
-            correos = CorreoIngestado.query.filter(
-                CorreoIngestado.cliente_id == g.cliente.id,
-                CorreoIngestado.fecha_recepcion >= fecha_desde
-            ).order_by(CorreoIngestado.fecha_recepcion.desc()).limit(100).all()
+            # Consultar con paginación
+            query = CorreoIngestado.query.filter(
+                CorreoIngestado.cliente_id == g.cliente.id
+            ).order_by(CorreoIngestado.fecha_recepcion.desc())
+            
+            pagination = query.paginate(page=page, per_page=per_page, error_out=False)
             
             # Formatear para el historial
-            for correo in correos:
+            for correo in pagination.items:
                 historial.append({
                     'fecha': correo.fecha_recepcion.strftime('%Y-%m-%d %H:%M:%S'),
                     'evento': 'Correo recibido',
@@ -117,6 +127,7 @@ def ingesta_correo():
                      ultima_verificacion=ultima_verificacion,
                      reglas=reglas,
                      historial=historial,
+                     pagination=pagination,
                      fecha_actual=fecha_actual,  
                      cliente=g.cliente,
                      usuario=g.usuario,
@@ -125,71 +136,129 @@ def ingesta_correo():
 
 @ingesta_correo_bp.route('/verificar', methods=['POST'])
 @login_required
-@role_required(['admin', 'gestor'])
-def verificar_ahora():
-    """Ejecuta una verificación manual del buzón de correo"""
-    if not g.cliente:
-        return jsonify({'success': False, 'message': 'Cliente no encontrado'})
-    
+def verificar():
+    """Verifica los correos nuevos según las reglas configuradas"""
     try:
-        # Verificar que la ingesta esté configurada y habilitada
-        if not g.cliente.config or 'correo' not in g.cliente.config:
-            return jsonify({'success': False, 'message': 'La ingesta de correo no está configurada'})
+        # Obtener el servicio de Gmail
+        gmail_service = get_gmail_service()
+        if not gmail_service:
+            return jsonify({'status': 'error', 'message': 'No se pudo conectar con Gmail'})
+
+        # Obtener reglas del cliente actual
+        reglas = ReglaFiltrado.query.filter_by(
+            cliente_id=g.cliente.id,
+            estado='activa'
+        ).order_by(ReglaFiltrado.prioridad.desc()).all()
         
-        config_correo = g.cliente.config['correo']
-        if not config_correo.get('habilitado', False):
-            return jsonify({'success': False, 'message': 'La ingesta de correo está deshabilitada'})
+        if not reglas:
+            return jsonify({'status': 'error', 'message': 'No hay reglas configuradas'})
+
+        correos_procesados = []
+        errores = []
+
+        for regla in reglas:
+            try:
+                # Construir la consulta de búsqueda según el tipo de condición
+                if regla.condicion_tipo == 'remitente':
+                    query = f"from:{regla.condicion_valor}"
+                elif regla.condicion_tipo == 'asunto':
+                    query = f"subject:{regla.condicion_valor}"
+                else:
+                    continue  # Saltar reglas con tipos no soportados
+                
+                results = gmail_service.users().messages().list(userId='me', q=query).execute()
+                messages = results.get('messages', [])
+
+                for message in messages:
+                    try:
+                        # Verificar si el correo ya fue procesado
+                        correo_existente = CorreoIngestado.query.filter_by(
+                            message_id_google=message['id']
+                        ).first()
+
+                        if correo_existente:
+                            continue  # Saltar este correo si ya existe
+
+                        # Obtener detalles del mensaje
+                        msg = gmail_service.users().messages().get(
+                            userId='me', 
+                            id=message['id']
+                        ).execute()
+
+                        # Extraer información del correo
+                        headers = msg['payload']['headers']
+                        subject = next(h['value'] for h in headers if h['name'].lower() == 'subject')
+                        from_header = next(h['value'] for h in headers if h['name'].lower() == 'from')
+                        date_header = next(h['value'] for h in headers if h['name'].lower() == 'date')
+                        
+                        # Convertir fecha de string a datetime
+                        fecha_recepcion = parser.parse(date_header)
+
+                        # Verificar adjuntos
+                        tiene_adjuntos = 0
+                        if 'parts' in msg['payload']:
+                            tiene_adjuntos = 1 if any(
+                                part.get('filename', '') != '' 
+                                for part in msg['payload']['parts']
+                            ) else 0
+
+                        # Crear registro de correo ingestado
+                        correo = CorreoIngestado(
+                            cliente_id=g.cliente.id,
+                            message_id_google=message['id'],
+                            remitente=from_header,
+                            asunto=subject,
+                            fecha_recepcion=fecha_recepcion,
+                            fecha_procesamiento=datetime.now(),
+                            estado='procesado',
+                            adjuntos_detectados=tiene_adjuntos,
+                            regla_aplicada_id=regla.id
+                        )
+                        
+                        try:
+                            db.session.add(correo)
+                            db.session.commit()
+                            correos_procesados.append(message['id'])
+                        except Exception as e:
+                            db.session.rollback()
+                            errores.append(f"Error al guardar correo en BD: {str(e)}")
+                            continue
+
+                        # Marcar como leído
+                        try:
+                            gmail_service.users().messages().modify(
+                                userId='me',
+                                id=message['id'],
+                                body={'removeLabelIds': ['UNREAD']}
+                            ).execute()
+                        except Exception as e:
+                            errores.append(f"Error al marcar como leído: {str(e)}")
+
+                    except Exception as e:
+                        errores.append(f"Error procesando mensaje {message['id']}: {str(e)}")
+                        continue
+
+            except Exception as e:
+                errores.append(f"Error procesando regla {regla.id}: {str(e)}")
+                continue
+
+        # Preparar respuesta
+        response = {
+            'status': 'success' if not errores else 'warning',
+            'correos_procesados': len(correos_procesados),
+            'message': 'Verificación completada'
+        }
         
-        # Aquí iría la lógica para ejecutar la tarea de verificación
-        # Por ahora, es un placeholder que simula una verificación
-        
-        # Para la demo, vamos a simular que encontramos algunos correos
-        # En un entorno real, esto se conectaría con un worker de Celery o APScheduler
-        
-        # Actualizar la última verificación
-        config_correo['ultima_verificacion'] = datetime.utcnow().isoformat()
-        g.cliente.config['correo'] = config_correo
-        
-        # Crear registros de ejemplo para demostración
-        from random import randint, choice
-        
-        num_correos = randint(1, 3)  # Simular entre 1 y 3 correos nuevos
-        remitentes = [
-            'notificaciones@segurossalud.com', 
-            'glosas@mediseguro.com', 
-            'facturacion@proteccionsalud.com'
-        ]
-        
-        asuntos = [
-            'GLOSA Factura F-2023-{}'.format(randint(1000, 9999)),
-            'Notificación de Glosa #{}'.format(randint(100, 999)),
-            'Factura glosada #{}'.format(randint(100, 999))
-        ]
-        
-        for i in range(num_correos):
-            nuevo_correo = CorreoIngestado(
-                cliente_id=g.cliente.id,
-                message_id_google=f"msg_{datetime.utcnow().timestamp()}_{i}",
-                remitente=choice(remitentes),
-                asunto=choice(asuntos),
-                fecha_recepcion=datetime.utcnow(),
-                estado='pendiente',
-                adjuntos_detectados=randint(0, 2)
-            )
-            db.session.add(nuevo_correo)
-        
-        # Guardar cambios
-        flag_modified(g.cliente, 'config')
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': f'Verificación realizada correctamente. Se encontraron {num_correos} correos nuevos.'
-        })
-        
+        if errores:
+            response['errores'] = errores
+
+        return jsonify(response)
+
     except Exception as e:
-        logger.error(f"Error al realizar verificación manual: {str(e)}")
-        return jsonify({'success': False, 'message': f'Error al verificar: {str(e)}'})
+        return jsonify({
+            'status': 'error',
+            'message': f'Error en verificación: {str(e)}'
+        })
 
 @ingesta_correo_bp.route('/toggle-servicio', methods=['POST'])
 @login_required
@@ -490,3 +559,119 @@ def toggle_regla(id_regla):
         db.session.rollback()
         logger.error(f"Error al cambiar estado de regla: {str(e)}")
         return jsonify({'success': False, 'message': f'Error: {str(e)}'})
+
+# NUEVOS ENDPOINTS PARA EL RFC-0001-03
+
+@ingesta_correo_bp.route('/api/logs')
+@login_required
+@role_required(['admin', 'super_admin', 'gestor', 'auditor'])
+def api_logs():
+    """API para obtener logs paginados del historial de actividad"""
+    try:
+        # Obtener parámetros de paginación
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        
+        # Limitar per_page a un máximo razonable
+        if per_page > 100:
+            per_page = 100
+        
+        # Consultar logs paginados
+        pagination = CorreoIngestado.query.filter_by(cliente_id=g.cliente.id)\
+                                   .order_by(CorreoIngestado.fecha_recepcion.desc())\
+                                   .paginate(page=page, per_page=per_page, error_out=False)
+        
+        # Preparar respuesta JSON
+        logs_json = []
+        for correo in pagination.items:
+            logs_json.append({
+                'id': correo.id,
+                'fecha': correo.fecha_recepcion.strftime('%Y-%m-%d %H:%M:%S'),
+                'evento': 'Correo recibido',
+                'detalles': f'De: {correo.remitente}, Asunto: {correo.asunto}',
+                'estado': correo.estado
+            })
+            
+            # Si fue procesado, agregar entrada para los adjuntos
+            if correo.estado == 'procesado' and correo.adjuntos_detectados > 0:
+                logs_json.append({
+                    'id': f"{correo.id}-adj",
+                    'fecha': (correo.fecha_procesamiento or correo.fecha_recepcion).strftime('%Y-%m-%d %H:%M:%S'),
+                    'evento': 'Adjunto extraído',
+                    'detalles': f'{correo.adjuntos_detectados} archivo(s) procesado(s)',
+                    'estado': 'éxito'
+                })
+        
+        return jsonify({
+            'success': True,
+            'logs': logs_json,
+            'pagination': {
+                'page': pagination.page,
+                'per_page': pagination.per_page,
+                'total': pagination.total,
+                'pages': pagination.pages,
+                'has_next': pagination.has_next,
+                'has_prev': pagination.has_prev,
+                'next_num': pagination.next_num,
+                'prev_num': pagination.prev_num
+            }
+        })
+    
+    except Exception as e:
+        logger.error(f"Error al obtener logs API: {str(e)}")
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'})
+
+@ingesta_correo_bp.route('/descargar-log')
+@login_required
+@role_required(['admin', 'super_admin', 'gestor', 'auditor'])
+def descargar_log():
+    """Descarga los logs de actividad en formato CSV"""
+    try:
+        # Obtener parámetro opcional de límite
+        limit = request.args.get('limit', 100, type=int)
+        if limit > 1000:  # Establecer un límite máximo razonable
+            limit = 1000
+            
+        # Obtener logs ordenados por fecha
+        logs = CorreoIngestado.query.filter_by(cliente_id=g.cliente.id)\
+                             .order_by(CorreoIngestado.fecha_recepcion.desc())\
+                             .limit(limit).all()
+        
+        # Crear archivo CSV en memoria
+        si = io.StringIO()
+        cw = csv.writer(si)
+        
+        # Escribir encabezados
+        cw.writerow(['Fecha Recepción', 'Remitente', 'Asunto', 'Estado', 'Adjuntos', 'Detalles Error'])
+        
+        # Escribir datos
+        for log in logs:
+            cw.writerow([
+                log.fecha_recepcion.strftime('%Y-%m-%d %H:%M:%S'),
+                log.remitente,
+                log.asunto,
+                log.estado,
+                log.adjuntos_detectados,
+                log.detalles_error or ''
+            ])
+        
+        # Crear bytes para enviar
+        output = io.BytesIO(si.getvalue().encode('utf-8'))
+        output.seek(0)
+        
+        # Generar nombre de archivo con timestamp
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"historial_ingesta_{g.cliente.id}_{timestamp}.csv"
+        
+        # Enviar archivo
+        return send_file(
+            output,
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name=filename
+        )
+        
+    except Exception as e:
+        logger.error(f"Error al descargar logs: {str(e)}")
+        flash(f"Error al descargar el historial: {str(e)}", "danger")
+        return redirect(url_for('ingesta_correo.ingesta_correo'))

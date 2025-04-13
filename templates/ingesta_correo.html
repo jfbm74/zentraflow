@@ -150,7 +150,7 @@
                                 <td>{{ regla.prioridad }}</td>
                                 <td>
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input regla-switch" type="checkbox" 
+                                        <input class="form-check-input switch-estado-regla" type="checkbox" 
                                             data-regla-id="{{ regla.id }}" 
                                             {% if regla.estado == 'activa' %}checked{% endif %}>
                                         <label class="form-check-label">
@@ -264,7 +264,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <p>¿Está seguro que desea eliminar esta regla?</p>
+                    <p id="confirmarEliminarMensaje">¿Está seguro que desea eliminar esta regla?</p>
                     <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
                 </div>
                 <div class="modal-footer">
@@ -281,13 +281,13 @@
             <div class="card shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 text-primary">Historial de Actividad</h5>
-                    <button class="btn btn-outline-secondary btn-sm">
+                    <a href="{{ url_for('ingesta_correo.descargar_log') }}" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-download"></i> Descargar Log
-                    </button>
+                    </a>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-hover table-sm table-datatable">
+                        <table class="table table-hover table-sm">
                             <thead>
                                 <tr>
                                     <th>Fecha/Hora</th>
@@ -296,7 +296,7 @@
                                     <th>Estado</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="historial-tabla-body">
                                 {% for item in historial %}
                                 <tr>
                                     <td>{{ item.fecha }}</td>
@@ -317,39 +317,41 @@
                                     </td>
                                 </tr>
                                 {% else %}
-                                <!-- Si no hay datos reales, mostrar algunos de ejemplo -->
+                                <!-- Si no hay datos reales, mostrar mensaje -->
                                 <tr>
-                                    <td>{{ fecha_actual.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                                    <td>Verificación iniciada</td>
-                                    <td>Inicio del ciclo de verificación</td>
-                                    <td><span class="badge bg-info">Informativo</span></td>
+                                    <td colspan="4" class="text-center">No hay registros de actividad disponibles.</td>
                                 </tr>
                                 {% endfor %}
-                                
-                                <!-- Solo para demostración si no hay historial -->
-                                {% if not historial %}
-                                <tr>
-                                    <td>2023-11-10 09:45:12</td>
-                                    <td>Correo recibido</td>
-                                    <td>De: notificaciones@segurossalud.com</td>
-                                    <td><span class="badge bg-success">Procesado</span></td>
-                                </tr>
-                                <tr>
-                                    <td>2023-11-10 09:45:15</td>
-                                    <td>Adjunto extraído</td>
-                                    <td>GlosaFacturaF12345.xlsx</td>
-                                    <td><span class="badge bg-success">Éxito</span></td>
-                                </tr>
-                                <tr>
-                                    <td>2023-11-10 09:30:05</td>
-                                    <td>Correo recibido</td>
-                                    <td>De: facturas@mediseguro.com</td>
-                                    <td><span class="badge bg-warning">Pendiente</span></td>
-                                </tr>
-                                {% endif %}
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Paginación -->
+                    {% if pagination and pagination.pages > 1 %}
+                    <nav aria-label="Navegación de páginas" id="historial-pagination">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item {{ 'disabled' if not pagination.has_prev else '' }}">
+                                <a class="page-link" href="{{ url_for('ingesta_correo.ingesta_correo', page=pagination.prev_num) if pagination.has_prev else '#' }}">Anterior</a>
+                            </li>
+                            
+                            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                                {% if page_num %}
+                                    <li class="page-item {{ 'active' if page_num == pagination.page else '' }}">
+                                        <a class="page-link" href="{{ url_for('ingesta_correo.ingesta_correo', page=page_num) }}">{{ page_num }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <li class="page-item {{ 'disabled' if not pagination.has_next else '' }}">
+                                <a class="page-link" href="{{ url_for('ingesta_correo.ingesta_correo', page=pagination.next_num) if pagination.has_next else '#' }}">Siguiente</a>
+                            </li>
+                        </ul>
+                    </nav>
+                    {% endif %}
                 </div>
             </div>
         </div>

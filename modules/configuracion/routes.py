@@ -13,6 +13,9 @@ from .forms import ConfiguracionGeneralForm, ConfiguracionCorreoForm
 from database import db
 from sqlalchemy.orm.attributes import flag_modified
 import uuid
+from datetime import datetime
+from google_auth_oauthlib.flow import Flow
+from google.auth.transport.requests import Request
 
 def guardar_logo(archivo, cliente_id):
     """Guarda el logo del cliente en el sistema de archivos"""
@@ -107,7 +110,11 @@ def guardar_correo():
                 'metodo_auth': form.metodo_autenticacion.data,
                 'carpeta': form.carpeta_monitorear.data,
                 'intervalo': form.intervalo_verificacion.data,
-                'marcar_leidos': form.marcar_leidos.data
+                'marcar_leidos': form.marcar_leidos.data,
+                'ultima_modificacion': {
+                    'fecha': datetime.utcnow().isoformat(),
+                    'usuario': g.usuario.email
+                }
             })
             
             # Procesar credenciales según el método de autenticación
@@ -116,6 +123,8 @@ def guardar_correo():
                     config_correo['client_id'] = form.client_id.data
                 if form.client_secret.data:
                     config_correo['client_secret'] = form.client_secret.data
+                if form.refresh_token.data:
+                    config_correo['refresh_token'] = form.refresh_token.data
                     
             elif form.metodo_autenticacion.data == 'service_account':
                 if form.service_account_key.data:
@@ -213,3 +222,108 @@ def probar_conexion_correo():
             
     except Exception as e:
         return jsonify({'success': False, 'message': f'Error al probar la conexión: {str(e)}'})
+
+# Configuración de OAuth
+SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+CLIENT_SECRETS_FILE = 'client_secrets.json'
+
+@configuracion_bp.route('/iniciar-oauth')
+@login_required
+def iniciar_oauth():
+    """Inicia el flujo de autorización OAuth"""
+    try:
+        # Obtener configuración de correo
+        config_correo = g.cliente.config.get('correo', {})
+        
+        if not config_correo.get('client_id') or not config_correo.get('client_secret'):
+            flash('Debes configurar el Client ID y Client Secret primero', 'warning')
+            return redirect(url_for('configuracion.index', tab='correo'))
+        
+        # Crear configuración de OAuth
+        client_config = {
+            "web": {
+                "client_id": config_correo['client_id'],
+                "project_id": "zentraflow",
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                "client_secret": config_correo['client_secret'],
+                "redirect_uris": [url_for('configuracion.oauth_callback', _external=True)]
+            }
+        }
+        
+        # Crear el flujo de OAuth
+        flow = Flow.from_client_config(
+            client_config,
+            scopes=SCOPES,
+            redirect_uri=url_for('configuracion.oauth_callback', _external=True)
+        )
+        
+        # Generar URL de autorización
+        authorization_url, state = flow.authorization_url(
+            access_type='offline',
+            include_granted_scopes='true',
+            prompt='consent'
+        )
+        
+        # Guardar el estado en la sesión
+        session['oauth_state'] = state
+        
+        return redirect(authorization_url)
+        
+    except Exception as e:
+        flash(f'Error al iniciar la autorización: {str(e)}', 'danger')
+        return redirect(url_for('configuracion.index', tab='correo'))
+
+@configuracion_bp.route('/oauth-callback')
+@login_required
+def oauth_callback():
+    """Maneja el callback de autorización OAuth"""
+    try:
+        # Verificar el estado
+        if session.get('oauth_state') != request.args.get('state'):
+            flash('Estado de OAuth inválido', 'danger')
+            return redirect(url_for('configuracion.index', tab='correo'))
+        
+        # Obtener configuración de correo
+        config_correo = g.cliente.config.get('correo', {})
+        
+        # Crear configuración de OAuth
+        client_config = {
+            "web": {
+                "client_id": config_correo['client_id'],
+                "project_id": "zentraflow",
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                "client_secret": config_correo['client_secret'],
+                "redirect_uris": [url_for('configuracion.oauth_callback', _external=True)]
+            }
+        }
+        
+        # Crear el flujo de OAuth
+        flow = Flow.from_client_config(
+            client_config,
+            scopes=SCOPES,
+            redirect_uri=url_for('configuracion.oauth_callback', _external=True)
+        )
+        
+        # Obtener las credenciales
+        flow.fetch_token(authorization_response=request.url)
+        credentials = flow.credentials
+        
+        # Guardar el refresh token en la configuración
+        if credentials.refresh_token:
+            config_correo['refresh_token'] = credentials.refresh_token
+            g.cliente.config['correo'] = config_correo
+            flag_modified(g.cliente, 'config')
+            db.session.commit()
+            
+            flash('Refresh Token obtenido y guardado exitosamente', 'success')
+        else:
+            flash('No se pudo obtener el Refresh Token. Por favor, intenta nuevamente.', 'warning')
+            
+    except Exception as e:
+        flash(f'Error en el callback de autorización: {str(e)}', 'danger')
+    
+    return redirect(url_for('configuracion.index', tab='correo'))

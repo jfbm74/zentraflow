@@ -44,8 +44,17 @@ class ConfiguracionCorreoForm(FlaskForm):
                                      ])
     
     # Credenciales OAuth 2.0
-    client_id = StringField('Client ID')
-    client_secret = PasswordField('Client Secret')
+    client_id = StringField('Client ID', 
+                          validators=[Optional()],
+                          description='ID de cliente obtenido de Google Cloud Console')
+    
+    client_secret = PasswordField('Client Secret',
+                                validators=[Optional()],
+                                description='Secreto de cliente obtenido de Google Cloud Console')
+    
+    refresh_token = StringField('Refresh Token',
+                              validators=[Optional()],
+                              description='Token de actualización obtenido después de autorizar la aplicación')
     
     # Credenciales Cuenta de Servicio
     service_account_key = FileField('Archivo de Clave JSON',
