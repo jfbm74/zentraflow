@@ -10,156 +10,191 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/zentratek.css') }}">
+    <style>
+        body {
+            min-height: 100vh;
+            padding-top: 60px;
+        }
+
+        /* Estilos para el sidebar */
+        .sidebar {
+            position: fixed;
+            top: 60px;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            transition: all 0.3s ease-in-out;
+            width: 280px;
+            background-color: #f8f9fa;
+        }
+
+        .sidebar.collapsed {
+            margin-left: -280px;
+        }
+
+        .sidebar-sticky {
+            position: sticky;
+            top: 0;
+            height: calc(100vh - 60px);
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        /* Estilos para el contenido principal */
+        .main-content {
+            margin-left: 280px;
+            transition: all 0.3s ease-in-out;
+            padding: 20px;
+            min-height: calc(100vh - 60px);
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        /* Estilos para el navbar */
+        .zentratek-navbar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+            z-index: 1030;
+            height: 60px;
+        }
+
+        /* Estilos para el botón de toggle */
+        #sidebarToggle {
+            position: fixed;
+            left: 10px;
+            top: 10px;
+            z-index: 1031;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #sidebarToggle:hover {
+            background-color: #f8f9fa;
+        }
+
+        #sidebarToggle i {
+            font-size: 1.5rem;
+            color: #333;
+        }
+
+        /* Ajustes para la navegación */
+        .navbar {
+            padding-left: 60px;
+        }
+
+        /* Ajustes para el footer */
+        .footer {
+            margin-top: auto;
+            padding: 1rem 0;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -280px;
+            }
+            .sidebar.show {
+                margin-left: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .navbar {
+                padding-left: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Header Mejorado -->
+    <!-- Botón Toggle Sidebar -->
+    <button id="sidebarToggle" type="button" aria-label="Toggle Sidebar">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <!-- Header -->
     <nav class="navbar navbar-expand-lg navbar-dark zentratek-navbar">
         <div class="container-fluid">
-            <!-- Contenedor del logo con fondo blanco -->
-            <div class="zentratek-logo-container me-2">
-                <a class="navbar-brand p-0" href="{{ url_for('dashboard') }}">
-                    <img src="{{ url_for('static', filename='img/zentratek-logo.png') }}" alt="Zentratek Logo" class="zentratek-logo">
+            <div class="d-flex align-items-center">
+                <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">
+                    <span class="ms-2">ZentraFlow</span>
                 </a>
+                <div class="ms-3 text-light">
+                    <i class="bi bi-building"></i>
+                    <span class="ms-2">{{ cliente }}</span>
+                </div>
             </div>
-            
-            <!-- Título de la aplicación -->
-            <a class="navbar-brand zentratek-brand" href="{{ url_for('dashboard') }}">
-                <span class="brand-text">ZentraFlow</span>
-            </a>
-            
-            <!-- Badge del cliente -->
-            <div class="zentratek-client-badge ms-3 d-none d-md-flex align-items-center">
-                <i class="bi bi-building"></i>
-                <span class="ms-2">{{ cliente }}</span>
-            </div>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle zentratek-user-menu" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="d-inline-block zentratek-user-avatar me-2">
-                                <span>{{ user_name[0] }}</span>
-                            </div>
-                            <span>{{ user_name }}</span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end zentratek-dropdown" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Mi Perfil</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Configuración</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
-                        </ul>
-                    </li>
-                </ul>
+            <div class="d-flex align-items-center">
+                <div class="dropdown">
+                    <button class="btn btn-link dropdown-toggle text-light" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle"></i>
+                        <span class="ms-2">{{ user_name }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Mi Perfil</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Configuración</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 d-md-block sidebar collapse" id="sidebarMenu">
-                <div class="position-sticky pt-3">
-                    <div class="user-profile text-center mb-4">
-                        <div class="avatar">
-                            <span>{{ user_name[0] }}</span>
-                        </div>
-                        <h6 class="mt-2 mb-0">{{ user_name }}</h6>
-                        <small class="text-muted">{{ user_email }}</small>
-                    </div>
-                    
-                    <h6 class="sidebar-heading px-3 mt-4 mb-1 text-uppercase">
-                        <span>Principal</span>
-                    </h6>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{{ url_for('dashboard') }}">
-                                <i class="bi bi-speedometer2"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if '/glosas' in request.path %}active{% endif %}" href="{{ url_for('bandeja_glosas') }}">
-                                <i class="bi bi-inbox"></i> Bandeja de Glosas
-                            </a>
-                        </li>
-                    </ul>
-                    
-                    <h6 class="sidebar-heading px-3 mt-4 mb-1 text-uppercase">
-                        <span>Módulos</span>
-                    </h6>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('ingesta_correo') }}">
-                                <i class="bi bi-envelope-check"></i> Ingesta de Correo
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('extraccion_datos') }}">
-                                <i class="bi bi-file-earmark-spreadsheet"></i> Extracción de Datos
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('flujo_trabajo') }}">
-                                <i class="bi bi-diagram-3"></i> Flujo de Trabajo
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('generacion_pdf') }}">
-                                <i class="bi bi-file-earmark-pdf"></i> Generación PDF
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/reportes' %}active{% endif %}" href="{{ url_for('reportes') }}">
-                                <i class="bi bi-bar-chart"></i> Reportes
-                            </a>
-                        </li>
-                    </ul>
-                    
-                    <h6 class="sidebar-heading px-3 mt-4 mb-1 text-uppercase">
-                        <span>Administración</span>
-                    </h6>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="bi bi-gear"></i> Configuración
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="bi bi-shield-check"></i> Auditoría
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-danger" href="{{ url_for('logout') }}">
-                                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Main Content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-                {% block content %}{% endblock %}
-                
-                <!-- Footer -->
-                <footer class="footer mt-5 py-3 text-center text-muted">
-                    <div class="container">
-                        <span>&copy; 2025 ZentraFlow - Sistema de Gestión de Glosas | Powered by Zentratek</span>
-                    </div>
-                </footer>
-            </main>
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-sticky">
+            {% include 'includes/sidebar_content.html' %}
         </div>
-    </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main">
+        {% block content %}{% endblock %}
+    </main>
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom JS -->
-    <script src="{{ url_for('static', filename='js/zentratek.js') }}"></script>
     
-    <!-- Specific Page Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const main = document.getElementById('main');
+            const toggle = document.getElementById('sidebarToggle');
+            
+            // Recuperar el estado del sidebar del localStorage
+            const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            if (sidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+                main.classList.add('expanded');
+            }
+
+            toggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                main.classList.toggle('expanded');
+                
+                // Guardar el estado del sidebar en localStorage
+                localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+            });
+        });
+    </script>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>
