@@ -13,6 +13,7 @@ from database import db
 from modules.usuarios.models import RolUsuario
 import logging
 from datetime import datetime
+from .forms import ReglaFiltradoForm
 
 # Configurar logger
 logger = logging.getLogger(__name__)
@@ -238,7 +239,7 @@ def toggle_servicio():
 @ingesta_correo_bp.route('/reglas', methods=['POST'])
 @login_required
 @role_required(['admin', 'gestor'])
-def crear_regla():
+def crear_regla_legacy():
     """Crea una nueva regla de filtrado"""
     if not g.cliente:
         return jsonify({'success': False, 'message': 'Cliente no encontrado'})
@@ -283,4 +284,209 @@ def crear_regla():
         
     except Exception as e:
         logger.error(f"Error al crear regla: {str(e)}")
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'})
+    
+
+# Ruta para obtener todas las reglas del cliente actual
+@ingesta_correo_bp.route('/api/reglas', methods=['GET'])
+@login_required
+@role_required(['admin', 'super_admin', 'gestor'])
+def obtener_reglas():
+    """Obtiene las reglas de filtrado del cliente actual"""
+    try:
+        # Obtener reglas ordenadas por prioridad
+        reglas = ReglaFiltrado.query.filter_by(cliente_id=g.cliente.id).order_by(ReglaFiltrado.prioridad).all()
+        
+        # Convertir a formato JSON
+        reglas_json = []
+        for regla in reglas:
+            reglas_json.append({
+                'id': regla.id,
+                'nombre': regla.nombre,
+                'condicion_tipo': regla.condicion_tipo,
+                'condicion_operador': regla.condicion_operador,
+                'condicion_valor': regla.condicion_valor,
+                'accion': regla.accion,
+                'prioridad': regla.prioridad,
+                'estado': regla.estado
+            })
+        
+        return jsonify({'success': True, 'reglas': reglas_json})
+    
+    except Exception as e:
+        logger.error(f"Error al obtener reglas: {str(e)}")
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'})
+
+# Ruta para crear una nueva regla
+@ingesta_correo_bp.route('/api/reglas', methods=['POST'])
+@login_required
+@role_required(['admin', 'super_admin'])
+def crear_regla():
+    """Crea una nueva regla de filtrado"""
+    try:
+        # Obtener datos del JSON
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No se recibieron datos'})
+        
+        # Crear formulario y validar
+        form = ReglaFiltradoForm(data=data, meta={'csrf': False})
+        
+        if not form.validate():
+            errores = {}
+            for field, field_errors in form.errors.items():
+                errores[field] = field_errors
+            return jsonify({'success': False, 'errors': errores})
+        
+        # Determinar prioridad si no se proporcionó
+        if not form.prioridad.data:
+            # Obtener la prioridad máxima actual y sumar 1
+            max_prioridad = db.session.query(db.func.max(ReglaFiltrado.prioridad)).\
+                filter(ReglaFiltrado.cliente_id == g.cliente.id).scalar() or 0
+            prioridad = max_prioridad + 10  # Dejamos espacio entre prioridades
+        else:
+            prioridad = form.prioridad.data
+        
+        # Crear nueva regla
+        regla = ReglaFiltrado(
+            cliente_id=g.cliente.id,
+            nombre=form.nombre.data,
+            condicion_tipo=form.condicion_tipo.data,
+            condicion_operador=form.condicion_operador.data,
+            condicion_valor=form.condicion_valor.data,
+            accion=form.accion.data,
+            prioridad=prioridad,
+            estado='activa' if form.estado.data else 'inactiva'
+        )
+        
+        db.session.add(regla)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Regla creada correctamente',
+            'regla': {
+                'id': regla.id,
+                'nombre': regla.nombre,
+                'condicion_tipo': regla.condicion_tipo,
+                'condicion_operador': regla.condicion_operador,
+                'condicion_valor': regla.condicion_valor,
+                'accion': regla.accion,
+                'prioridad': regla.prioridad,
+                'estado': regla.estado
+            }
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error al crear regla: {str(e)}")
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'})
+
+# Ruta para actualizar una regla existente
+@ingesta_correo_bp.route('/api/reglas/<int:id_regla>', methods=['PUT'])
+@login_required
+@role_required(['admin', 'super_admin'])
+def actualizar_regla(id_regla):
+    """Actualiza una regla de filtrado existente"""
+    try:
+        # Buscar regla y verificar que pertenezca al cliente actual
+        regla = ReglaFiltrado.query.filter_by(id=id_regla, cliente_id=g.cliente.id).first_or_404()
+        
+        # Obtener datos del JSON
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No se recibieron datos'})
+        
+        # Crear formulario y validar
+        form = ReglaFiltradoForm(data=data, meta={'csrf': False})
+        
+        if not form.validate():
+            errores = {}
+            for field, field_errors in form.errors.items():
+                errores[field] = field_errors
+            return jsonify({'success': False, 'errors': errores})
+        
+        # Actualizar regla
+        regla.nombre = form.nombre.data
+        regla.condicion_tipo = form.condicion_tipo.data
+        regla.condicion_operador = form.condicion_operador.data
+        regla.condicion_valor = form.condicion_valor.data
+        regla.accion = form.accion.data
+        
+        if form.prioridad.data:
+            regla.prioridad = form.prioridad.data
+        
+        regla.estado = 'activa' if form.estado.data else 'inactiva'
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Regla actualizada correctamente',
+            'regla': {
+                'id': regla.id,
+                'nombre': regla.nombre,
+                'condicion_tipo': regla.condicion_tipo,
+                'condicion_operador': regla.condicion_operador,
+                'condicion_valor': regla.condicion_valor,
+                'accion': regla.accion,
+                'prioridad': regla.prioridad,
+                'estado': regla.estado
+            }
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error al actualizar regla: {str(e)}")
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'})
+
+# Ruta para eliminar una regla
+@ingesta_correo_bp.route('/api/reglas/<int:id_regla>', methods=['DELETE'])
+@login_required
+@role_required(['admin', 'super_admin'])
+def eliminar_regla(id_regla):
+    """Elimina una regla de filtrado"""
+    try:
+        # Buscar regla y verificar que pertenezca al cliente actual
+        regla = ReglaFiltrado.query.filter_by(id=id_regla, cliente_id=g.cliente.id).first_or_404()
+        
+        # Eliminar regla
+        db.session.delete(regla)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Regla eliminada correctamente'
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error al eliminar regla: {str(e)}")
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'})
+
+# Ruta para activar/desactivar una regla
+@ingesta_correo_bp.route('/api/reglas/<int:id_regla>/toggle', methods=['PATCH'])
+@login_required
+@role_required(['admin', 'super_admin'])
+def toggle_regla(id_regla):
+    """Activa o desactiva una regla de filtrado"""
+    try:
+        # Buscar regla y verificar que pertenezca al cliente actual
+        regla = ReglaFiltrado.query.filter_by(id=id_regla, cliente_id=g.cliente.id).first_or_404()
+        
+        # Invertir estado
+        nuevo_estado = 'inactiva' if regla.estado == 'activa' else 'activa'
+        regla.estado = nuevo_estado
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Regla {nuevo_estado} correctamente',
+            'nuevo_estado': nuevo_estado
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error al cambiar estado de regla: {str(e)}")
         return jsonify({'success': False, 'message': f'Error: {str(e)}'})

@@ -109,99 +109,167 @@
     </div>
 
     <!-- Reglas de Filtrado -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-primary">Reglas de Filtrado</h5>
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#nuevaReglaModal">
-                        <i class="bi bi-plus-circle"></i> Nueva Regla
-                    </button>
+    <!-- Sección de Reglas de Filtrado -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-filter me-2"></i>Reglas de Filtrado</h5>
+            <button class="btn btn-primary btn-sm" id="btn-nueva-regla" data-bs-toggle="modal" data-bs-target="#nuevaReglaModal">
+                <i class="bi bi-plus-circle me-1"></i> Nueva Regla
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Condición</th>
+                            <th>Acción</th>
+                            <th>Prioridad</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reglas-tabla-body">
+                        {% if reglas %}
+                            {% for regla in reglas %}
+                            <tr data-regla-id="{{ regla.id }}">
+                                <td>{{ regla.nombre }}</td>
+                                <td>
+                                    <span class="badge bg-light text-dark">{{ regla.condicion_tipo|capitalize }}</span>
+                                    <span class="badge bg-light text-dark">{{ regla.condicion_operador|replace('_', ' ')|capitalize }}</span>
+                                    <span class="badge bg-info text-white">{{ regla.condicion_valor }}</span>
+                                </td>
+                                <td>
+                                    {% if regla.accion == 'procesar' %}
+                                    <span class="badge bg-success">Procesar</span>
+                                    {% else %}
+                                    <span class="badge bg-warning text-dark">Ignorar</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ regla.prioridad }}</td>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input regla-switch" type="checkbox" 
+                                            data-regla-id="{{ regla.id }}" 
+                                            {% if regla.estado == 'activa' %}checked{% endif %}>
+                                        <label class="form-check-label">
+                                            {% if regla.estado == 'activa' %}Activa{% else %}Inactiva{% endif %}
+                                        </label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-info me-1 btn-editar-regla" 
+                                            data-regla-id="{{ regla.id }}"
+                                            data-bs-toggle="modal" data-bs-target="#reglaModal">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger btn-eliminar-regla" 
+                                            data-regla-id="{{ regla.id }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center">No hay reglas de filtrado configuradas. Crea una nueva regla con el botón "Nueva Regla".</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Crear/Editar Regla -->
+    <div class="modal fade" id="reglaModal" tabindex="-1" aria-labelledby="reglaModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reglaModalLabel">Nueva Regla de Filtrado</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-datatable">
-                            <thead>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <th>Condición</th>
-                                    <th>Valor</th>
-                                    <th>Acción</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for regla in reglas %}
-                                <tr>
-                                    <td>{{ regla.nombre }}</td>
-                                    <td>{{ regla.condicion_tipo|title }} {{ regla.condicion_operador }}</td>
-                                    <td>{{ regla.condicion_valor }}</td>
-                                    <td>{{ regla.accion|title }}</td>
-                                    <td>
-                                        {% if regla.estado == 'activa' %}
-                                            <span class="badge bg-success">Activa</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">Inactiva</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Editar">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-outline-danger" data-bs-toggle="tooltip" title="Eliminar">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% else %}
-                                <tr>
-                                    <td colspan="6" class="text-center">No hay reglas configuradas</td>
-                                </tr>
-                                {% endfor %}
-                                
-                                <!-- Solo para demostración si no hay reglas -->
-                                {% if not reglas %}
-                                <tr>
-                                    <td>Aseguradora A</td>
-                                    <td>Remitente contiene</td>
-                                    <td>segurossalud.com</td>
-                                    <td>Procesar</td>
-                                    <td><span class="badge bg-success">Activa</span></td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Editar">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-outline-danger" data-bs-toggle="tooltip" title="Eliminar">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Aseguradora B</td>
-                                    <td>Asunto contiene</td>
-                                    <td>GLOSA</td>
-                                    <td>Procesar</td>
-                                    <td><span class="badge bg-success">Activa</span></td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Editar">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-outline-danger" data-bs-toggle="tooltip" title="Eliminar">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endif %}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="modal-body">
+                    <form id="reglaForm">
+                        <input type="hidden" id="regla-id" value="">
+                        
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="condicion_tipo" class="form-label">Tipo de Condición</label>
+                            <select class="form-select" id="condicion_tipo" name="condicion_tipo" required>
+                                <option value="remitente">Remitente</option>
+                                <option value="asunto">Asunto</option>
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="condicion_operador" class="form-label">Operador</label>
+                            <select class="form-select" id="condicion_operador" name="condicion_operador" required>
+                                <option value="contiene">Contiene</option>
+                                <option value="no_contiene">No Contiene</option>
+                                <option value="igual_a">Igual a</option>
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="condicion_valor" class="form-label">Valor</label>
+                            <input type="text" class="form-control" id="condicion_valor" name="condicion_valor" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="accion" class="form-label">Acción</label>
+                            <select class="form-select" id="accion" name="accion" required>
+                                <option value="procesar">Procesar</option>
+                                <option value="ignorar">Ignorar</option>
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="prioridad" class="form-label">Prioridad (opcional)</label>
+                            <input type="number" class="form-control" id="prioridad" name="prioridad">
+                            <div class="form-text">Un número más alto indica mayor prioridad.</div>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="estado" name="estado" checked>
+                            <label class="form-check-label" for="estado">Activa</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="guardar-regla">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación para Eliminar -->
+    <div class="modal fade" id="confirmarEliminarModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar esta regla?</p>
+                    <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmar-eliminar">Eliminar</button>
                 </div>
             </div>
         </div>
