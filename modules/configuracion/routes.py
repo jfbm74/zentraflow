@@ -4,7 +4,7 @@ Rutas para el módulo de configuración
 
 import os
 import json
-from flask import render_template, g, session, request, flash, redirect, url_for, current_app
+from flask import render_template, g, session, request, flash, redirect, url_for, current_app, jsonify
 from werkzeug.utils import secure_filename
 from . import configuracion_bp
 from modules.usuarios.models import Usuario
@@ -13,6 +13,13 @@ from .forms import ConfiguracionGeneralForm, ConfiguracionCorreoForm
 from database import db
 from sqlalchemy.orm.attributes import flag_modified
 import uuid
+from google.oauth2 import service_account
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
+import pickle
+from modules.clientes.models import Cliente
+from flask_login import login_required, current_user
 
 def guardar_logo(archivo, cliente_id):
     """Guarda el logo del cliente en el sistema de archivos"""
@@ -185,4 +192,89 @@ def guardar_general():
             for error in errors:
                 flash(f'Error en {getattr(form, field).label.text}: {error}', 'danger')
     
-    return redirect(url_for('configuracion.index')) 
+    return redirect(url_for('configuracion.index'))
+
+@configuracion_bp.route('/probar-conexion-correo', methods=['POST'])
+@login_required
+def probar_conexion_correo():
+    """Probar la conexión a la cuenta de correo"""
+    try:
+        cliente = Cliente.query.filter_by(id=current_user.cliente_id).first()
+        if not cliente or not cliente.config or 'email' not in cliente.config:
+            return jsonify({'success': False, 'message': 'Configuración de correo no encontrada'})
+        
+        email_config = cliente.config['email']
+        
+        if email_config['metodo_autenticacion'] == 'oauth2':
+            # Configurar el flujo OAuth2
+            SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+            creds = None
+            
+            # El archivo token.pickle almacena los tokens de acceso y actualización del usuario
+            token_path = os.path.join('static', 'uploads', 'tokens', f'token_{cliente.id}.pickle')
+            os.makedirs(os.path.dirname(token_path), exist_ok=True)
+            
+            if os.path.exists(token_path):
+                with open(token_path, 'rb') as token:
+                    creds = pickle.load(token)
+            
+            # Si no hay credenciales válidas, solicitar al usuario que se autentique
+            if not creds or not creds.valid:
+                if creds and creds.expired and creds.refresh_token:
+                    creds.refresh(Request())
+                else:
+                    flow = InstalledAppFlow.from_client_config(
+                        {
+                            'installed': {
+                                'client_id': email_config['client_id'],
+                                'client_secret': email_config['client_secret'],
+                                'redirect_uris': ['http://localhost:5000/oauth2callback'],
+                                'auth_uri': 'https://accounts.google.com/o/oauth2/auth',
+                                'token_uri': 'https://oauth2.googleapis.com/token'
+                            }
+                        },
+                        SCOPES
+                    )
+                    creds = flow.run_local_server(port=0)
+                
+                # Guardar las credenciales para la próxima ejecución
+                with open(token_path, 'wb') as token:
+                    pickle.dump(creds, token)
+            
+            # Construir el servicio Gmail
+            service = build('gmail', 'v1', credentials=creds)
+            
+            # Probar la conexión listando las etiquetas
+            results = service.users().labels().list(userId='me').execute()
+            labels = results.get('labels', [])
+            
+            return jsonify({
+                'success': True,
+                'message': f'Conexión exitosa. Se encontraron {len(labels)} etiquetas.'
+            })
+            
+        else:  # service_account
+            # Cargar las credenciales de la cuenta de servicio
+            service_account_path = os.path.join('static', email_config['service_account_path'])
+            if not os.path.exists(service_account_path):
+                return jsonify({'success': False, 'message': 'Archivo de cuenta de servicio no encontrado'})
+            
+            credentials = service_account.Credentials.from_service_account_file(
+                service_account_path,
+                scopes=['https://www.googleapis.com/auth/gmail.readonly']
+            )
+            
+            # Construir el servicio Gmail
+            service = build('gmail', 'v1', credentials=credentials)
+            
+            # Probar la conexión listando las etiquetas
+            results = service.users().labels().list(userId=email_config['email']).execute()
+            labels = results.get('labels', [])
+            
+            return jsonify({
+                'success': True,
+                'message': f'Conexión exitosa. Se encontraron {len(labels)} etiquetas.'
+            })
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Error al probar la conexión: {str(e)}'}) 

@@ -148,6 +148,10 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save me-2"></i>Guardar Configuración de Correo
                         </button>
+
+                        <button type="button" class="btn btn-info ms-2" id="probarConexion">
+                            <i class="fas fa-plug me-2"></i>Probar Conexión
+                        </button>
                     </form>
                 </div>
             </div>
@@ -237,6 +241,70 @@ document.addEventListener('DOMContentLoaded', function() {
             const tabTrigger = new bootstrap.Tab(tabElement);
             tabTrigger.show();
         }
+    }
+
+    // Manejar el botón de prueba de conexión
+    const probarConexionBtn = document.querySelector('#probarConexion');
+    if (probarConexionBtn) {
+        probarConexionBtn.addEventListener('click', function() {
+            // Mostrar indicador de carga
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Probando conexión...';
+            this.disabled = true;
+
+            // Realizar la petición AJAX
+            fetch('{{ url_for("configuracion.probar_conexion_correo") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Restaurar el botón
+                this.innerHTML = originalText;
+                this.disabled = false;
+
+                // Mostrar el resultado
+                const alertClass = data.success ? 'alert-success' : 'alert-danger';
+                const alert = document.createElement('div');
+                alert.className = `alert ${alertClass} alert-dismissible fade show mt-3`;
+                alert.innerHTML = `
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                // Insertar la alerta después del botón
+                this.parentNode.insertBefore(alert, this.nextSibling);
+
+                // Eliminar la alerta después de 5 segundos
+                setTimeout(() => {
+                    alert.remove();
+                }, 5000);
+            })
+            .catch(error => {
+                // Restaurar el botón
+                this.innerHTML = originalText;
+                this.disabled = false;
+
+                // Mostrar error
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger alert-dismissible fade show mt-3';
+                alert.innerHTML = `
+                    Error al probar la conexión: ${error.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                // Insertar la alerta después del botón
+                this.parentNode.insertBefore(alert, this.nextSibling);
+
+                // Eliminar la alerta después de 5 segundos
+                setTimeout(() => {
+                    alert.remove();
+                }, 5000);
+            });
+        });
     }
 });
 </script>
