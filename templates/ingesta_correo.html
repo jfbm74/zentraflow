@@ -8,9 +8,9 @@
         <h1 class="h2"><i class="bi bi-envelope-check text-primary me-2"></i>Módulo de Ingesta de Correo</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group me-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary">
+                <a href="{{ url_for('configuracion.index') }}?tab=correo" class="btn btn-sm btn-outline-secondary">
                     <i class="bi bi-gear"></i> Configuración
-                </button>
+                </a>
                 <button type="button" class="btn btn-sm btn-outline-secondary">
                     <i class="bi bi-download"></i> Registros
                 </button>
@@ -24,7 +24,11 @@
             <div class="card shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 text-primary">Estado del Servicio</h5>
-                    <span class="badge bg-success">Activo</span>
+                    {% if estado_servicio %}
+                        <span class="badge bg-success">Activo</span>
+                    {% else %}
+                        <span class="badge bg-danger">Detenido</span>
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     <div class="row align-items-center">
@@ -33,19 +37,19 @@
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Cuenta de correo:
-                                    <span class="text-primary">intranet@bonsanaips.com</span>
+                                    <span class="text-primary">{{ config_correo.email|default('No configurado') }}</span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Protocolo:
-                                    <span class="badge bg-info">Microsoft Graph API</span>
+                                    <span class="badge bg-info">{{ config_correo.metodo_auth|default('No configurado')|title }}</span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Intervalo de verificación:
-                                    <span>5 minutos</span>
+                                    <span>{{ config_correo.intervalo|default('5') }} minutos</span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Última verificación:
-                                    <span>Hace 2 minutos</span>
+                                    <span>{{ ultima_verificacion|default('No hay datos') }}</span>
                                 </li>
                             </ul>
                         </div>
@@ -55,19 +59,23 @@
                                     <h6 class="card-title">Estadísticas del día</h6>
                                     <div class="row text-center">
                                         <div class="col-6 mb-3">
-                                            <h2 class="text-primary fw-bold">24</h2>
+                                            <h2 class="text-primary fw-bold">{{ estadisticas.total|default(0) }}</h2>
                                             <p class="text-muted">Correos procesados</p>
                                         </div>
                                         <div class="col-6 mb-3">
-                                            <h2 class="text-success fw-bold">16</h2>
+                                            <h2 class="text-success fw-bold">{{ estadisticas.glosas_extraidas|default(0)|int }}</h2>
                                             <p class="text-muted">Glosas extraídas</p>
                                         </div>
                                         <div class="col-6">
-                                            <h2 class="text-warning fw-bold">3</h2>
+                                            <h2 class="text-warning fw-bold">{{ estadisticas.pendiente|default(0) }}</h2>
                                             <p class="text-muted">Pendientes</p>
                                         </div>
                                         <div class="col-6">
-                                            <h2 class="text-danger fw-bold">1</h2>
+                                            <h2 class="text-danger fw-bold">
+                                                {{ (estadisticas.error_filtrado|default(0) + 
+                                                   estadisticas.error_descarga|default(0) + 
+                                                   estadisticas.error_handoff|default(0)) }}
+                                            </h2>
                                             <p class="text-muted">Errores</p>
                                         </div>
                                     </div>
@@ -79,14 +87,20 @@
                 <div class="card-footer">
                     <div class="row">
                         <div class="col-md-6">
-                            <button class="btn btn-outline-secondary btn-sm">
+                            <button id="btn-verificar-ahora" class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-arrow-clockwise"></i> Verificar ahora
                             </button>
                         </div>
                         <div class="col-md-6 text-end">
-                            <button class="btn btn-outline-danger btn-sm">
-                                <i class="bi bi-stop-circle"></i> Pausar servicio
-                            </button>
+                            {% if estado_servicio %}
+                                <button id="btn-toggle-servicio" class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-stop-circle"></i> Pausar servicio
+                                </button>
+                            {% else %}
+                                <button id="btn-toggle-servicio" class="btn btn-outline-success btn-sm">
+                                    <i class="bi bi-play-circle"></i> Reanudar servicio
+                                </button>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -106,7 +120,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover table-datatable">
                             <thead>
                                 <tr>
                                     <th>Nombre</th>
@@ -118,6 +132,38 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for regla in reglas %}
+                                <tr>
+                                    <td>{{ regla.nombre }}</td>
+                                    <td>{{ regla.condicion_tipo|title }} {{ regla.condicion_operador }}</td>
+                                    <td>{{ regla.condicion_valor }}</td>
+                                    <td>{{ regla.accion|title }}</td>
+                                    <td>
+                                        {% if regla.estado == 'activa' %}
+                                            <span class="badge bg-success">Activa</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactiva</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger" data-bs-toggle="tooltip" title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No hay reglas configuradas</td>
+                                </tr>
+                                {% endfor %}
+                                
+                                <!-- Solo para demostración si no hay reglas -->
+                                {% if not reglas %}
                                 <tr>
                                     <td>Aseguradora A</td>
                                     <td>Remitente contiene</td>
@@ -126,10 +172,10 @@
                                     <td><span class="badge bg-success">Activa</span></td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-primary">
+                                            <button class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Editar">
                                                 <i class="bi bi-pencil"></i>
                                             </button>
-                                            <button class="btn btn-outline-danger">
+                                            <button class="btn btn-outline-danger" data-bs-toggle="tooltip" title="Eliminar">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </div>
@@ -143,32 +189,16 @@
                                     <td><span class="badge bg-success">Activa</span></td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-primary">
+                                            <button class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Editar">
                                                 <i class="bi bi-pencil"></i>
                                             </button>
-                                            <button class="btn btn-outline-danger">
+                                            <button class="btn btn-outline-danger" data-bs-toggle="tooltip" title="Eliminar">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </div>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td>Spam</td>
-                                    <td>Asunto contiene</td>
-                                    <td>promoción,oferta</td>
-                                    <td>Ignorar</td>
-                                    <td><span class="badge bg-success">Activa</span></td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-primary">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-outline-danger">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
@@ -189,7 +219,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-hover table-sm">
+                        <table class="table table-hover table-sm table-datatable">
                             <thead>
                                 <tr>
                                     <th>Fecha/Hora</th>
@@ -199,6 +229,37 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for item in historial %}
+                                <tr>
+                                    <td>{{ item.fecha }}</td>
+                                    <td>{{ item.evento }}</td>
+                                    <td>{{ item.detalles }}</td>
+                                    <td>
+                                        {% if item.estado == 'procesado' or item.estado == 'éxito' %}
+                                            <span class="badge bg-success">Procesado</span>
+                                        {% elif item.estado == 'pendiente' %}
+                                            <span class="badge bg-warning">Pendiente</span>
+                                        {% elif item.estado == 'ignorado' %}
+                                            <span class="badge bg-secondary">Ignorado</span>
+                                        {% elif item.estado == 'informativo' %}
+                                            <span class="badge bg-info">Informativo</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Error</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <!-- Si no hay datos reales, mostrar algunos de ejemplo -->
+                                <tr>
+                                    <td>{{ fecha_actual.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                    <td>Verificación iniciada</td>
+                                    <td>Inicio del ciclo de verificación</td>
+                                    <td><span class="badge bg-info">Informativo</span></td>
+                                </tr>
+                                {% endfor %}
+                                
+                                <!-- Solo para demostración si no hay historial -->
+                                {% if not historial %}
                                 <tr>
                                     <td>2023-11-10 09:45:12</td>
                                     <td>Correo recibido</td>
@@ -217,36 +278,10 @@
                                     <td>De: facturas@mediseguro.com</td>
                                     <td><span class="badge bg-warning">Pendiente</span></td>
                                 </tr>
-                                <tr>
-                                    <td>2023-11-10 09:15:22</td>
-                                    <td>Adjunto extraído</td>
-                                    <td>GlosaF98765.pdf</td>
-                                    <td><span class="badge bg-danger">Error OCR</span></td>
-                                </tr>
-                                <tr>
-                                    <td>2023-11-10 09:00:00</td>
-                                    <td>Verificación iniciada</td>
-                                    <td>Inicio del ciclo de verificación</td>
-                                    <td><span class="badge bg-info">Informativo</span></td>
-                                </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
-                </div>
-                <div class="card-footer">
-                    <nav aria-label="Paginación de log">
-                        <ul class="pagination justify-content-center m-0">
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#" tabindex="-1">Anterior</a>
-                            </li>
-                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item">
-                                <a class="page-link" href="#">Siguiente</a>
-                            </li>
-                        </ul>
-                    </nav>
                 </div>
             </div>
         </div>
@@ -262,7 +297,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form>
+                <form id="form-nueva-regla">
                     <div class="mb-3">
                         <label for="nombreRegla" class="form-label">Nombre de la Regla</label>
                         <input type="text" class="form-control" id="nombreRegla" placeholder="Ej. Aseguradora XYZ">
@@ -296,7 +331,30 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="showToast('Regla creada exitosamente')">Guardar Regla</button>
+                <button type="button" class="btn btn-primary" id="btn-guardar-regla">Guardar Regla</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Resultados de Verificación -->
+<div class="modal fade" id="verificacionModal" tabindex="-1" aria-labelledby="verificacionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="verificacionModalLabel">Verificación de Buzón</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="verificacionModalBody">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Verificando buzón de correo...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
@@ -304,7 +362,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-    // Scripts específicos para esta página
-</script>
+<!-- Script personalizado para ingesta de correo -->
+<script src="{{ url_for('static', filename='js/ingesta_correo.js') }}"></script>
 {% endblock %}
